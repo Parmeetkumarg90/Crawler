@@ -6,7 +6,7 @@ using namespace std;
 // example ./run url directory max_depth_crawling
 int main(int argc, char *argv[])
 {
-    char *command = new char[100](), *unqiueName = generateUniqueName();
+    char *command = new char[100](), *unqiueName = generateUniqueName(), *space = new char[2]{' ', '\0'};
     if (!argv[1])
     {
         cout << "Please enter a url";
@@ -30,11 +30,13 @@ int main(int argc, char *argv[])
     {
         makeDIrectory(argv[2]);
     }
-    my_strcat(command, "wget -O ");
+    my_strcat(command, "wget -O");
+    my_strcat(command, space);
     my_strcat(command, argv[2]);
     my_strcat(command, unqiueName);
+    my_strcat(command, space);
     my_strcat(command, argv[1]);
-    cout << "command: " << command;
+    cout << command;
     int result = system(command);
     if (result == 0)
     {

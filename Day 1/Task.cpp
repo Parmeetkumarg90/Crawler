@@ -6,10 +6,18 @@ using namespace std;
 // example ./run url directory max_depth_crawling
 int main(int argc, char *argv[])
 {
-    char *command = new char[100](), filename[20] = "/output.html ";
+    char *command = new char[100](), *unqiueName = generateUniqueName();
     if (!argv[1])
     {
         cout << "Please enter a url";
+        return 0;
+    }
+    char urlPrefix[9] = "https://";
+    urlPrefix[9] = '\0';
+    char *isFound = my_strstr(argv[1], urlPrefix);
+    if (!isFound)
+    {
+        cout << "Url is invalid";
         return 0;
     }
     if (!argv[2])
@@ -24,8 +32,9 @@ int main(int argc, char *argv[])
     }
     my_strcat(command, "wget -O ");
     my_strcat(command, argv[2]);
-    my_strcat(command, filename);
+    my_strcat(command, unqiueName);
     my_strcat(command, argv[1]);
+    cout << "command: " << command;
     int result = system(command);
     if (result == 0)
     {

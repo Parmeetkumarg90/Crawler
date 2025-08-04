@@ -117,7 +117,6 @@ void makeDIrectory(const char *dirPath)
 // generate a unique name
 char *generateUniqueName()
 {
-    char uniqueName[20];
-
+    char *uniqueName = new char[20]{'u', 'n', 'i', 'q', 'e', '.', 'h', 't', 'm', 'l', '\0'};
     return uniqueName;
 }

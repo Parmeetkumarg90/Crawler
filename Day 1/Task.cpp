@@ -38,7 +38,8 @@ int main(int argc, char *argv[])
     int result = system(command);
     if (result == 0)
     {
-        cout << "\nFile Downloaded SUccess";
+        cout << "\nFile Downloaded Success";
+        cout << "Path: " << argv[2] << "/" << unqiueName;
     }
     else
     {

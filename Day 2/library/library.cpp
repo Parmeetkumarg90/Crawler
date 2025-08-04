@@ -87,11 +87,15 @@ char *my_strstr(const char *haystack, const char *needle)
                 }
                 if (compareLength == sizeOfNeedle)
                 {
-                    return (char *)&newhaystack[i];
+                    delete[] newhaystack;
+                    delete[] newneedle;
+                    return (char *)&haystack[i];
                 }
             }
         }
     }
+    delete[] newhaystack;
+    delete[] newneedle;
     return nullptr;
 }
 
@@ -160,4 +164,112 @@ void longIntoString(long long num, char *str)
     }
     char extension[] = {'.', 'h', 't', 'm', 'l', '\0'};
     my_strcat(str, extension);
+}
+
+// convert string into number
+long long stringIntoLong(char *str)
+{
+    int size = size_tmy_strlen(str), i = 0;
+    long long num = 0;
+    bool isNegative = false;
+    if (str[i] == '-')
+    {
+        isNegative = true;
+        i++;
+    }
+    for (; i < size; i++)
+    {
+        num = num * 10 + (str[i] - '0');
+    }
+    return num;
+}
+
+// function to fetch a url
+char *wgetFileDownload(const char *url, char *path)
+{
+    char *command = new char[100](), *unqiueName = generateUniqueName(), *space = new char[2]{' ', '\0'};
+    if (!url)
+    {
+        cout << "Please enter a url";
+        return nullptr;
+    }
+    char urlPrefix[9] = "https://";
+    urlPrefix[9] = '\0';
+    char *isFound = my_strstr(url, urlPrefix);
+    if (!isFound)
+    {
+        cout << "Url is invalid";
+        return nullptr;
+    }
+    if (!path)
+    {
+        cout << "Please enter a path";
+        return nullptr;
+    }
+    bool isDir = isDirectoryPresent(path);
+    if (!isDir)
+    {
+        makeDIrectory(path);
+    }
+    my_strcat(command, "wget -O");
+    my_strcat(command, space);
+    my_strcat(command, path);
+    my_strcat(command, unqiueName);
+    my_strcat(command, space);
+    my_strcat(command, url);
+    cout << command;
+    int result = system(command);
+    if (result == 0)
+    {
+        cout << "\nFile Downloaded Success";
+        cout << "Path: " << path << "/" << unqiueName;
+    }
+    else
+    {
+        cout << "\nFile Download Failed";
+    }
+    delete[] command;
+    command = nullptr;
+    delete[] space;
+    space = nullptr;
+    delete[] unqiueName;
+    unqiueName = nullptr;
+    char diff[2] = {'/', '\0'};
+    my_strcat(path, diff);
+    my_strcat(path, unqiueName);
+    return path;
+}
+
+// read a file
+char *readFile(const char *filePath)
+{
+    fstream file(filePath, ios::in);
+    if (!file.is_open())
+    {
+        return nullptr;
+    }
+    int i = 0;
+    char ch, *allData = new char[1000];
+    while (file.get(ch))
+    {
+        allData[i] = ch;
+        i++;
+    }
+    allData[i] = '\0';
+    file.close();
+
+    return allData;
+}
+
+// recursively download html file -> read it -> extract all html anchor tag links -> again repeat until maxDepthCount comes
+void fileGetDfs(const char *url, char *path, int maxDepthCount)
+{
+    if (!url || !path || !maxDepthCount || maxDepthCount <= 0)
+    {
+        return;
+    }
+    char *currFilePath = wgetFileDownload(url, path);
+    const char *allData = readFile(currFilePath);
+
+    delete[] allData;
 }

@@ -2,6 +2,7 @@
 #include <fstream>
 #include <ctime>
 #include <sys/stat.h>
+#include "./Crawler.h"
 using namespace std;
 
 // Append src to dest
@@ -17,6 +18,36 @@ void my_strcat(char *dest, const char *src)
         i++;
     }
     dest[i] = '\0';
+}
+
+// convert character into lowercase
+char charLowerCase(char c)
+{
+    if (c >= 'A' && c <= 'Z')
+    {
+        return c + 32; // Convert to lowercase
+    }
+    return c;
+}
+
+// remove white spaces
+char *normalizeTextByRemovingSpaces(char *text)
+{
+    int i = 1, j = 0;
+    for (; text[i]; i++)
+    {
+        if (text[i] == '\t' || text[i] == ' ' || text[i] == '\n')
+        {
+            continue;
+        }
+        else
+        {
+            text[j] = text[i];
+            j++;
+        }
+    }
+    text[j] = '\0';
+    return text;
 }
 
 // return length before '\0'
@@ -47,7 +78,7 @@ void lowercase(char *ch)
 }
 
 // Copy src into dest
-char *my_strcpy(char *dest, const char *src)
+void my_strcpy(char *dest, const char *src)
 {
     int i, sizeOfSrc = size_tmy_strlen(src);
     for (i = 0; i < sizeOfSrc; i++)
@@ -55,14 +86,15 @@ char *my_strcpy(char *dest, const char *src)
         dest[i] = src[i];
     }
     dest[i] = '\0';
-    return dest;
 }
 
 // Substring search
 char *my_strstr(const char *haystack, const char *needle)
 {
-    char *newhaystack = my_strcpy(new char[size_tmy_strlen(haystack) + 1], haystack);
-    char *newneedle = my_strcpy(new char[size_tmy_strlen(haystack) + 1], needle);
+    char *newhaystack = new char[size_tmy_strlen(haystack) + 1];
+    my_strcpy(newhaystack, haystack);
+    char *newneedle = new char[size_tmy_strlen(haystack) + 1];
+    my_strcpy(newneedle, needle);
     lowercase(newhaystack);
     lowercase(newneedle);
     int sizeOfNeedle = size_tmy_strlen(newneedle), sizeOfHayStack = size_tmy_strlen(newhaystack);
@@ -99,15 +131,25 @@ char *my_strstr(const char *haystack, const char *needle)
     return nullptr;
 }
 
+Crawler::Crawler()
+{
+    allUrls = new HashMap<char *, int>();
+}
+
+Crawler::~Crawler()
+{
+    delete allUrls;
+}
+
 // is directory present
-bool isDirectoryPresent(const char *dirPath)
+bool Crawler::isDirectoryPresent(const char *dirPath)
 {
     struct stat info;
     return stat(dirPath, &info) == 0 && (info.st_mode & S_IFDIR);
 }
 
 // create a directory
-void makeDIrectory(const char *dirPath)
+void Crawler::makeDIrectory(const char *dirPath)
 {
     if (mkdir(dirPath, 0777) == 0)
     {
@@ -120,17 +162,17 @@ void makeDIrectory(const char *dirPath)
 }
 
 // generate a unique name
-char *generateUniqueName()
+char *Crawler::generateUniqueName()
 {
     char *uniqueName = new char[30];
     time_t timenow = time(0);
     longIntoString(timenow, uniqueName);
-    cout << uniqueName;
+    // cout << uniqueName;
     return uniqueName;
 }
 
 // convert long into string
-void longIntoString(long long num, char *str)
+void Crawler::longIntoString(long long num, char *str)
 {
     str[0] = '/';
     if (num == 0)
@@ -167,7 +209,7 @@ void longIntoString(long long num, char *str)
 }
 
 // convert string into number
-long long stringIntoLong(char *str)
+long long Crawler::stringIntoLong(char *str)
 {
     int size = size_tmy_strlen(str), i = 0;
     long long num = 0;
@@ -185,7 +227,7 @@ long long stringIntoLong(char *str)
 }
 
 // function to fetch a url
-char *wgetFileDownload(const char *url, char *path)
+char *Crawler::wgetFileDownload(const char *url, char *path)
 {
     char *command = new char[100](), *unqiueName = generateUniqueName(), *space = new char[2]{' ', '\0'};
     if (!url)
@@ -217,7 +259,7 @@ char *wgetFileDownload(const char *url, char *path)
     my_strcat(command, unqiueName);
     my_strcat(command, space);
     my_strcat(command, url);
-    cout << command;
+    // cout << command;
     int result = system(command);
     if (result == 0)
     {
@@ -227,21 +269,22 @@ char *wgetFileDownload(const char *url, char *path)
     else
     {
         cout << "\nFile Download Failed";
+        return nullptr;
     }
     delete[] command;
     command = nullptr;
     delete[] space;
     space = nullptr;
-    delete[] unqiueName;
-    unqiueName = nullptr;
     char diff[2] = {'/', '\0'};
     my_strcat(path, diff);
     my_strcat(path, unqiueName);
+    delete[] unqiueName;
+    unqiueName = nullptr;
     return path;
 }
 
 // read a file
-char *readFile(const char *filePath)
+char *Crawler::readFile(const char *filePath)
 {
     fstream file(filePath, ios::in);
     if (!file.is_open())
@@ -262,14 +305,74 @@ char *readFile(const char *filePath)
 }
 
 // recursively download html file -> read it -> extract all html anchor tag links -> again repeat until maxDepthCount comes
-void fileGetDfs(const char *url, char *path, int maxDepthCount)
+void Crawler::fileGetDfs(const char *url, char *path, int maxDepthCount)
 {
     if (!url || !path || !maxDepthCount || maxDepthCount <= 0)
     {
         return;
     }
     char *currFilePath = wgetFileDownload(url, path);
-    const char *allData = readFile(currFilePath);
-
+    // cout << currFilePath;
+    char *allData = readFile(currFilePath);
+    // cout << allData;
+    allData = normalizeTextByRemovingSpaces(allData);
+    readHtmlUrls(allData, url);
+    allUrls->hashDisplay();
     delete[] allData;
+}
+
+// find all urls
+void Crawler::readHtmlUrls(const char *allData, const char *url)
+{
+    int startIndex = 0;
+    // bool isRelativeUrl = false;
+    for (int i = 10; allData[i]; i++)
+    {
+        // int mainUrlSize = size_tmy_strlen(url);
+        if (charLowerCase(allData[i - 9]) == 'h' && charLowerCase(allData[i - 8]) == 'r' &&
+            charLowerCase(allData[i - 7]) == 'e' && charLowerCase(allData[i - 6]) == 'f' &&
+            charLowerCase(allData[i - 5]) == '=' && charLowerCase(allData[i - 4]) == '"' &&
+            charLowerCase(allData[i - 3]) == 'h' && charLowerCase(allData[i - 2]) == 't' &&
+            charLowerCase(allData[i - 1]) == 't' && charLowerCase(allData[i]) == 'p') // for http or https urls
+        {
+            startIndex = i - 3;
+        }
+        // else if (charLowerCase(allData[i - 5]) == 'h' && charLowerCase(allData[i - 4]) == 'r' &&
+        //          charLowerCase(allData[i - 3]) == 'r' && charLowerCase(allData[i - 2]) == 'f' &&
+        //          charLowerCase(allData[i - 1]) == '"' && (charLowerCase(allData[i]) == '.' || charLowerCase(allData[i]) == '/')) // for relative urls
+        // {
+        //     isRelativeUrl = true;
+        //     startIndex = i;
+        // }
+        else if (startIndex != 0 && allData[i] == '"')
+        {
+            if ((allData[i - 1] == '/') ||
+                (allData[i - 5] == '.' &&
+                 charLowerCase(allData[i - 4]) == 'h' && charLowerCase(allData[i - 3]) == 't' && charLowerCase(allData[i - 2]) == 'm' && charLowerCase(allData[i - 1]) == 'l'))
+            {
+                if (i - startIndex > 0)
+                {
+                    // int newUrlSize = isRelativeUrl ? (mainUrlSize + (i - startIndex) + 1) : ((i - startIndex) + 1);
+                    char *newUrl = new char[i - startIndex + 1];
+                    int j = 0;
+                    // if (isRelativeUrl)
+                    // {
+                    //     while (j < mainUrlSize)
+                    //     {
+                    //         newUrl[j] = url[j];
+                    //         j++;
+                    //     }
+                    //     isRelativeUrl = false;
+                    // }
+                    while (startIndex < i)
+                    {
+                        newUrl[j++] = allData[startIndex++];
+                    }
+                    newUrl[j] = '\0';
+                    allUrls->hashInsertion(newUrl, 0);
+                }
+            }
+            startIndex = 0;
+        }
+    }
 }

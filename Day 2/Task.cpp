@@ -15,5 +15,6 @@ int main(int argc, char *argv[])
     }
     obj->dfs(argv[1], argv[2], obj->stringIntoLong(argv[3]));
     delete obj;
+    cout << "\n";
     return 0;
 }

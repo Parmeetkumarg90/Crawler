@@ -2,6 +2,7 @@
 #include <fstream>
 #include <ctime>
 #include <sys/stat.h>
+#include <filesystem>
 #include "./Crawler.h"
 using namespace std;
 
@@ -54,7 +55,7 @@ char charLowerCase(char c)
 // remove white spaces
 char *normalizeTextByRemovingSpaces(char *text)
 {
-    int i = 1, j = 0;
+    int i = 0, j = 0;
     for (; text[i]; i++)
     {
         if (text[i] == '\t' || text[i] == ' ' || text[i] == '\n')
@@ -165,14 +166,13 @@ Crawler::~Crawler()
 // is directory present
 bool Crawler::isDirectoryPresent(const char *dirPath)
 {
-    struct stat info;
-    return stat(dirPath, &info) == 0 && (info.st_mode & S_IFDIR);
+    return filesystem::exists(dirPath);
 }
 
 // create a directory
 void Crawler::makeDIrectory(const char *dirPath)
 {
-    if (mkdir(dirPath, 0777) == 0)
+    if (filesystem::create_directories(dirPath))
     {
         cout << "\nDirectory Created";
     }
@@ -256,17 +256,17 @@ char *Crawler::wgetFileDownload(const char *url, const char *path)
         cout << "Please enter a url";
         return nullptr;
     }
-    char urlPrefix[9] = "https://";
-    urlPrefix[9] = '\0';
+    char urlPrefix[5] = "http";
+    urlPrefix[5] = '\0';
     char *isFound = my_strstr(url, urlPrefix);
     if (!isFound)
     {
-        cout << "Url is invalid";
+        cout << "\nUrl is invalid: " << url;
         return nullptr;
     }
     if (!path)
     {
-        cout << "Please enter a path";
+        cout << "\nPlease enter a path";
         return nullptr;
     }
     bool isDir = isDirectoryPresent(path);
@@ -292,17 +292,13 @@ char *Crawler::wgetFileDownload(const char *url, const char *path)
         cout << "\nFile Download Failed";
         return nullptr;
     }
-    delete[] command;
-    command = nullptr;
-    delete[] space;
-    space = nullptr;
-    char diff[2] = {'/', '\0'};
-    char *newPath = new char[size_tmy_strlen(path) + size_tmy_strlen(unqiueName) + 1];
+    char *newPath = new char[size_tmy_strlen(path) + size_tmy_strlen(unqiueName) + 2];
     my_strcpy(newPath, path);
-    my_strcat(newPath, diff);
+    my_strcat(newPath, "/");
     my_strcat(newPath, unqiueName);
-    delete[] unqiueName;
-    unqiueName = nullptr;
+    clearCharacters(unqiueName);
+    clearCharacters(command);
+    clearCharacters(space);
     return newPath;
 }
 
@@ -355,8 +351,17 @@ void Crawler::fileGetDfs(char *url, const char *path, int maxDepthCount)
         currNodeUrl->setVal(1);
     }
     char *currFilePath = wgetFileDownload(url, path);
+    if (!currFilePath)
+    {
+        return;
+    }
     // cout << currFilePath;
     char *allData = readFile(currFilePath);
+    if (!allData)
+    {
+        clearCharacters(currFilePath);
+        return;
+    }
     // cout << allData;
     allData = normalizeTextByRemovingSpaces(allData);
     char **thisPageUrl = readHtmlUrls(allData, url);

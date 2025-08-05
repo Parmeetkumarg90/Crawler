@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
         cout << "Example: ./objectFile https://www.google.com ./pages/temp 5";
         return 0;
     }
-    obj->fileGetDfs(argv[1], argv[2], obj->stringIntoLong(argv[3]));
+    obj->dfs(argv[1], argv[2], obj->stringIntoLong(argv[3]));
     delete obj;
     return 0;
 }

@@ -248,7 +248,7 @@ long long Crawler::stringIntoLong(char *str)
 }
 
 // function to fetch a url
-char *Crawler::wgetFileDownload(const char *url, char *path)
+char *Crawler::wgetFileDownload(const char *url, const char *path)
 {
     char *command = new char[100](), *unqiueName = generateUniqueName(), *space = new char[2]{' ', '\0'};
     if (!url)
@@ -297,11 +297,13 @@ char *Crawler::wgetFileDownload(const char *url, char *path)
     delete[] space;
     space = nullptr;
     char diff[2] = {'/', '\0'};
-    my_strcat(path, diff);
-    my_strcat(path, unqiueName);
+    char *newPath = new char[size_tmy_strlen(path) + size_tmy_strlen(unqiueName) + 1];
+    my_strcpy(newPath, path);
+    my_strcat(newPath, diff);
+    my_strcat(newPath, unqiueName);
     delete[] unqiueName;
     unqiueName = nullptr;
-    return path;
+    return newPath;
 }
 
 // read a file
@@ -333,11 +335,11 @@ void Crawler::dfs(char *url, char *path, int maxDepthCount)
         return;
     }
     allUrls->hashInsertion(url, 0);
-    fileGetDfs(url, path, maxDepthCount - 1);
+    fileGetDfs(url, path, maxDepthCount);
 }
 
 // recursively download html file -> read it -> extract all html anchor tag links -> again repeat until maxDepthCount comes
-void Crawler::fileGetDfs(char *url, char *path, int maxDepthCount)
+void Crawler::fileGetDfs(char *url, const char *path, int maxDepthCount)
 {
     if (!url || !path || !maxDepthCount || maxDepthCount <= 0)
     {
@@ -363,11 +365,9 @@ void Crawler::fileGetDfs(char *url, char *path, int maxDepthCount)
         allUrls->hashInsertion(thisPageUrl[i], 0);
         fileGetDfs(thisPageUrl[i], path, maxDepthCount - 1);
     }
-    while (1)
-    {
-    }
     clearArrayOfString(thisPageUrl);
     clearCharacters(allData);
+    clearCharacters(currFilePath);
 }
 
 // find all urls

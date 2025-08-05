@@ -5,6 +5,27 @@
 #include "./Crawler.h"
 using namespace std;
 
+void clearArrayOfString(char **data)
+{
+    int i = 0;
+    while (data[i] != nullptr)
+    {
+        if (data[i])
+        {
+            delete[] data[i];
+        }
+        i++;
+    }
+    delete[] data;
+    data = nullptr;
+}
+
+void clearCharacters(char *data)
+{
+    delete[] data;
+    data = nullptr;
+}
+
 // Append src to dest
 void my_strcat(char *dest, const char *src)
 {
@@ -292,7 +313,7 @@ char *Crawler::readFile(const char *filePath)
         return nullptr;
     }
     int i = 0;
-    char ch, *allData = new char[1000];
+    char ch, *allData = new char[100000];
     while (file.get(ch))
     {
         allData[i] = ch;
@@ -304,42 +325,71 @@ char *Crawler::readFile(const char *filePath)
     return allData;
 }
 
-// recursively download html file -> read it -> extract all html anchor tag links -> again repeat until maxDepthCount comes
-void Crawler::fileGetDfs(const char *url, char *path, int maxDepthCount)
+// function for user to use it
+void Crawler::dfs(char *url, char *path, int maxDepthCount)
 {
     if (!url || !path || !maxDepthCount || maxDepthCount <= 0)
     {
         return;
+    }
+    allUrls->hashInsertion(url, 0);
+    fileGetDfs(url, path, maxDepthCount - 1);
+}
+
+// recursively download html file -> read it -> extract all html anchor tag links -> again repeat until maxDepthCount comes
+void Crawler::fileGetDfs(char *url, char *path, int maxDepthCount)
+{
+    if (!url || !path || !maxDepthCount || maxDepthCount <= 0)
+    {
+        return;
+    }
+    Node<char *, int> *currNodeUrl = allUrls->getNode(url);
+    if (currNodeUrl && currNodeUrl->getValue() == 1)
+    {
+        return;
+    }
+    else if (currNodeUrl)
+    {
+        currNodeUrl->setVal(1);
     }
     char *currFilePath = wgetFileDownload(url, path);
     // cout << currFilePath;
     char *allData = readFile(currFilePath);
     // cout << allData;
     allData = normalizeTextByRemovingSpaces(allData);
-    readHtmlUrls(allData, url);
-    allUrls->hashDisplay();
-    delete[] allData;
+    char **thisPageUrl = readHtmlUrls(allData, url);
+    for (int i = 0; thisPageUrl[i]; i++)
+    {
+        allUrls->hashInsertion(thisPageUrl[i], 0);
+        fileGetDfs(thisPageUrl[i], path, maxDepthCount - 1);
+    }
+    while (1)
+    {
+    }
+    clearArrayOfString(thisPageUrl);
+    clearCharacters(allData);
 }
 
 // find all urls
-void Crawler::readHtmlUrls(const char *allData, const char *url)
+char **Crawler::readHtmlUrls(const char *allData, const char *url)
 {
-    int startIndex = 0;
+    char **thisPageUrls = new char *[20]();
+    int startIndex = 0, urlIndex = 0;
     // bool isRelativeUrl = false;
     for (int i = 10; allData[i]; i++)
     {
         // int mainUrlSize = size_tmy_strlen(url);
         if (charLowerCase(allData[i - 9]) == 'h' && charLowerCase(allData[i - 8]) == 'r' &&
             charLowerCase(allData[i - 7]) == 'e' && charLowerCase(allData[i - 6]) == 'f' &&
-            charLowerCase(allData[i - 5]) == '=' && charLowerCase(allData[i - 4]) == '"' &&
+            allData[i - 5] == '=' && allData[i - 4] == '"' &&
             charLowerCase(allData[i - 3]) == 'h' && charLowerCase(allData[i - 2]) == 't' &&
             charLowerCase(allData[i - 1]) == 't' && charLowerCase(allData[i]) == 'p') // for http or https urls
         {
             startIndex = i - 3;
         }
         // else if (charLowerCase(allData[i - 5]) == 'h' && charLowerCase(allData[i - 4]) == 'r' &&
-        //          charLowerCase(allData[i - 3]) == 'r' && charLowerCase(allData[i - 2]) == 'f' &&
-        //          charLowerCase(allData[i - 1]) == '"' && (charLowerCase(allData[i]) == '.' || charLowerCase(allData[i]) == '/')) // for relative urls
+        //          charLowerCase(allData[i - 3]) == 'e' && charLowerCase(allData[i - 2]) == 'f' &&
+        //          allData[i - 1] == '"' && (allData[i] == '.' || allData[i] == '/')) // for relative urls
         // {
         //     isRelativeUrl = true;
         //     startIndex = i;
@@ -369,10 +419,12 @@ void Crawler::readHtmlUrls(const char *allData, const char *url)
                         newUrl[j++] = allData[startIndex++];
                     }
                     newUrl[j] = '\0';
-                    allUrls->hashInsertion(newUrl, 0);
+                    thisPageUrls[urlIndex++] = newUrl;
                 }
             }
             startIndex = 0;
         }
     }
+    thisPageUrls[urlIndex++] = nullptr;
+    return thisPageUrls;
 }

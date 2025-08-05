@@ -401,32 +401,6 @@ bool isMatched(const char *stored, const char *key)
     return stored[i] == '\0' && key[i] == '\0';
 }
 
-// template <typename keyType, typename valueType>
-// void HashMap<keyType, valueType>::setValue(keyType key, valueType val)
-// {
-//     int headPosition = hashFunction(key);
-//     if (!HashTable[headPosition]) // no node
-//     {
-//         return;
-//     }
-//     Node<keyType, valueType> *head = getPreviousNodeForKey(key), *headNode = HashTable[headPosition];
-//     if (head)
-//     {
-//         if (head->getNext() && head->getNext()->getKey() == key)
-//         {
-//             head->getNext()->setVal(val); // found at middle
-//             return;
-//         }
-//     }
-//     else
-//     {
-//         if (headNode && headNode->getKey() == key)
-//         {
-//             return;
-//         }
-//     }
-// }
-
 template <typename keyType, typename valueType>
 Node<keyType, valueType> *HashMap<keyType, valueType>::getNode(keyType key)
 {

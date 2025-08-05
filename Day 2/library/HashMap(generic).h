@@ -64,7 +64,6 @@ public:
     void clear();
     bool empty();
     int count();
-    // keyType[] getAllNodes();
     // void setValue(keyType key, valueType val);
     Node<keyType, valueType> *getNode(keyType key);
 

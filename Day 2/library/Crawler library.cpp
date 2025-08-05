@@ -314,6 +314,10 @@ char *Crawler::readFile(const char *filePath)
     char ch, *allData = new char[100000];
     while (file.get(ch))
     {
+        if (i >= 99999)
+        {
+            break;
+        }
         allData[i] = ch;
         i++;
     }
@@ -383,6 +387,10 @@ char **Crawler::readHtmlUrls(const char *allData, const char *url)
     // bool isRelativeUrl = false;
     for (int i = 10; allData[i]; i++)
     {
+        if (urlIndex == 20)
+        {
+            break;
+        }
         // int mainUrlSize = size_tmy_strlen(url);
         if (charLowerCase(allData[i - 9]) == 'h' && charLowerCase(allData[i - 8]) == 'r' &&
             charLowerCase(allData[i - 7]) == 'e' && charLowerCase(allData[i - 6]) == 'f' &&

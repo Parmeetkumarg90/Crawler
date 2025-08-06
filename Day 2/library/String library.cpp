@@ -147,13 +147,13 @@ char **Character::most_frequent_word(const char *text, const char **stopwords, i
     {
         return nullptr;
     }
-    HashMap<char *, int> *obj = new HashMap<char *, int>();
     char **allWords = tokenizer(text);
     if (!allWords || !allWords[0])
     {
         return nullptr;
     }
-    char **frequentWords = new char *[5]();
+    HashMap<char *, int> *obj = new HashMap<char *, int>();
+    char **frequentWords = new char *[10]();
     int wordI = 0;
     for (int i = 0; allWords[i]; i++)
     {
@@ -514,4 +514,52 @@ long long Character::stringIntoLong(char *str)
         num = num * 10 + (str[i] - '0');
     }
     return num;
+}
+
+// check if a mainStr ends with searchStr
+bool Character::endsWith(const char *mainStr, const char *searchStr)
+{
+    if (!mainStr || !searchStr)
+    {
+        return false;
+    }
+    int j = size_tmy_strlen(searchStr) - 1, i = size_tmy_strlen(mainStr) - 1;
+    if (j >= i)
+    {
+        return false;
+    }
+    while (j >= 0)
+    {
+        if (!mainStr[i] || !searchStr[j] || (charLowerCase(mainStr[i]) != charLowerCase(searchStr[j])))
+        {
+            return false;
+        }
+        i--;
+        j--;
+    }
+    return true;
+}
+
+// check if a mainStr starts with searchStr
+bool Character::startsWith(const char *mainStr, const char *searchStr)
+{
+    if (!mainStr || !searchStr)
+    {
+        return false;
+    }
+    int j = 0, i = 0, mainLen = size_tmy_strlen(mainStr), searchLen = size_tmy_strlen(searchStr);
+    if (searchLen > mainLen)
+    {
+        return false;
+    }
+    while (j < searchLen)
+    {
+        if (!mainStr[i] || !searchStr[j] || (charLowerCase(mainStr[i]) != charLowerCase(searchStr[j])))
+        {
+            return false;
+        }
+        i++;
+        j++;
+    }
+    return true;
 }

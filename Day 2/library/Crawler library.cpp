@@ -9,10 +9,13 @@ Crawler::Crawler()
 {
     allUrls = new HashMap<char *, int>();
     charObj = new Character();
+    const char *stopwords[] = {"the", "is", "and", "of", "in", "to", "a", "on", "for", "with", "at", "by", "is", "am", "are", "was", "were", "will", "has", "have", "my", "what", "why", "your", "you", nullptr};
+    int stopcount = sizeof(stopwords) / sizeof(stopwords[0]);
 }
 
 Crawler::~Crawler()
 {
+    // charObj->clearArrayOfString(stopwords);
     delete allUrls;
     delete charObj;
 }
@@ -32,7 +35,7 @@ void Crawler::makeDIrectory(const char *dirPath)
     }
     else
     {
-        cout << "Failed to create directory";
+        cout << "Failed to create directory or directory present";
     }
 }
 
@@ -54,7 +57,7 @@ char *Crawler::wgetFileDownload(const char *url, const char *path)
         cout << "Please enter a url or path";
         return nullptr;
     }
-    char *command = new char[charObj->size_tmy_strlen(url) + charObj->size_tmy_strlen(path) + 20](), *unqiueName = generateUniqueName(); //, *space = new char[2]{' ', '\0'};
+    char *command = new char[charObj->size_tmy_strlen(url) + charObj->size_tmy_strlen(path) + 40](), *unqiueName = generateUniqueName(); //, *space = new char[2]{' ', '\0'};
     char urlPrefix[5] = "http";
     char *isFound = charObj->my_strstr(url, urlPrefix);
     if (!isFound)
@@ -79,7 +82,7 @@ char *Crawler::wgetFileDownload(const char *url, const char *path)
     charObj->my_strcat(command, unqiueName);
     charObj->my_strcat(command, " ");
     charObj->my_strcat(command, url);
-    cout << command;
+    // cout << command;
     int result = system(command);
     if (result == 0)
     {
@@ -183,9 +186,11 @@ void Crawler::fileGetDfs(char *url, const char *path, int maxDepthCount, int max
         charObj->my_strcpy(urlCopy, thisPageUrl[i]);
         allUrls->hashInsertion(urlCopy, 0);
         fileGetDfs(urlCopy, path, maxDepthCount - 1, maxFoundPerPage);
+        // delete[] urlCopy; // remove
     }
     charObj->clearCharacters(allData);
     charObj->clearCharacters(currFilePath);
+    // charObj->clearArrayOfString(thisPageUrl); // remove
 }
 
 // find all urls
@@ -193,62 +198,72 @@ char **Crawler::readHtmlUrls(const char *allData, const char *url, int maxFoundP
 {
     char **thisPageUrls = new char *[maxFoundPerPage + 1]();
     int startIndex = 0, urlIndex = 0;
-    // bool isRelativeUrl = false;
+    bool isRelativeUrl = false;
+    int mainUrlSize = charObj->size_tmy_strlen(url);
     for (int i = 10; allData[i]; i++)
     {
         if (urlIndex + 1 == maxFoundPerPage)
         {
             break;
         }
-        // int mainUrlSize = size_tmy_strlen(url);
         if (charObj->charLowerCase(allData[i - 9]) == 'h' && charObj->charLowerCase(allData[i - 8]) == 'r' &&
             charObj->charLowerCase(allData[i - 7]) == 'e' && charObj->charLowerCase(allData[i - 6]) == 'f' &&
-            allData[i - 5] == '=' && allData[i - 4] == '"' &&
-            charObj->charLowerCase(allData[i - 3]) == 'h' && charObj->charLowerCase(allData[i - 2]) == 't' &&
-            charObj->charLowerCase(allData[i - 1]) == 't' && charObj->charLowerCase(allData[i]) == 'p') // for http or https urls
+            allData[i - 5] == '=' && allData[i - 4] == '"'
+            // &&
+            // charObj->charLowerCase(allData[i - 3]) == 'h' && charObj->charLowerCase(allData[i - 2]) == 't' &&
+            // charObj->charLowerCase(allData[i - 1]) == 't' && charObj->charLowerCase(allData[i]) == 'p'
+            ) // for http or https urls
         {
             startIndex = i - 3;
         }
-        // else if (charLowerCase(allData[i - 5]) == 'h' && charLowerCase(allData[i - 4]) == 'r' &&
-        //          charLowerCase(allData[i - 3]) == 'e' && charLowerCase(allData[i - 2]) == 'f' &&
-        //          allData[i - 1] == '"' && (allData[i] == '.' || allData[i] == '/')) // for relative urls
+        // else if (
+        //     charObj->charLowerCase(allData[i - 5]) == 'h' && charObj->charLowerCase(allData[i - 4]) == 'r' &&
+
+        //     charObj->charLowerCase(allData[i - 3]) == 'e' && charObj->charLowerCase(allData[i - 2]) == 'f' &&
+        //     allData[i - 1] == '"' && (allData[i] == '.' || allData[i] == '/')) // for relative urls
         // {
         //     isRelativeUrl = true;
         //     startIndex = i;
         // }
         else if (startIndex != 0 && allData[i] == '"')
         {
-            if ((allData[i - 1] == '/') ||
-                (allData[i - 5] == '.' &&
-                 charObj->charLowerCase(allData[i - 4]) == 'h' && charObj->charLowerCase(allData[i - 3]) == 't' && charObj->charLowerCase(allData[i - 2]) == 'm' && charObj->charLowerCase(allData[i - 1]) == 'l'))
+            // if ((allData[i - 1] == '/') ||
+            //     (allData[i - 5] == '.' &&
+            //      charObj->charLowerCase(allData[i - 4]) == 'h' && charObj->charLowerCase(allData[i - 3]) == 't' && charObj->charLowerCase(allData[i - 2]) == 'm' && charObj->charLowerCase(allData[i - 1]) == 'l'))
+            // {
+            if (i - startIndex > 0)
             {
-                if (i - startIndex > 0)
+                int newUrlSize = isRelativeUrl ? (mainUrlSize + (i - startIndex) + 1) : ((i - startIndex) + 1);
+                char *newUrl = new char[newUrlSize]();
+                int j = 0;
+                if (isRelativeUrl)
                 {
-                    // int newUrlSize = isRelativeUrl ? (mainUrlSize + (i - startIndex) + 1) : ((i - startIndex) + 1);
-                    char *newUrl = new char[i - startIndex + 1];
-                    int j = 0;
-                    // if (isRelativeUrl)
-                    // {
-                    //     while (j < mainUrlSize)
-                    //     {
-                    //         newUrl[j] = url[j];
-                    //         j++;
-                    //     }
-                    //     isRelativeUrl = false;
-                    // }
-                    int temp = startIndex;
-                    while (temp < i)
+                    if (charObj->endsWith(url, ".html"))
                     {
-                        newUrl[j++] = allData[temp++];
+                        cout << "\n\n\nit is html\n\n\n";
                     }
-
-                    newUrl[j] = '\0';
-                    thisPageUrls[urlIndex++] = newUrl;
+                    else
+                    {
+                        charObj->my_strcat(newUrl, url);
+                        j += charObj->size_tmy_strlen(url);
+                    }
+                    isRelativeUrl = false;
                 }
+                int temp = startIndex;
+                while (temp < i)
+                {
+                    newUrl[j++] = allData[temp++];
+                }
+
+                newUrl[j] = '\0';
+                thisPageUrls[urlIndex++] = newUrl;
             }
+            // }
             startIndex = 0;
         }
     }
     thisPageUrls[urlIndex] = nullptr;
     return thisPageUrls;
 }
+
+// void Crawler::createLogFile() {}

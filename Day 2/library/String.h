@@ -35,9 +35,11 @@ public:
     char *normalizeTextByRemovingExtraSpace(char *text); // remove extra white spaces
 
     // Basic or normally used functions
-    char *normalizeTextByRemovingSpaces(char *text); // remove white spaces
-    long long stringIntoLong(char *str);             // convert string into number
-    void longIntoString(long long num, char *str);   // convert long into string
+    char *normalizeTextByRemovingSpaces(char *text);             // remove white spaces
+    long long stringIntoLong(char *str);                         // convert string into number
+    void longIntoString(long long num, char *str);               // convert long into string
+    bool endsWith(const char *mainStr, const char *searchStr);   // check if a mainStr ends with searchStr
+    bool startsWith(const char *mainStr, const char *searchStr); // check if a mainStr starts with searchStr
 };
 
 #include "./String library.cpp"

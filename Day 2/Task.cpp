@@ -7,17 +7,14 @@ using namespace std;
 int main(int argc, char *argv[])
 {
     Crawler *obj = new Crawler();
-    if (!argv[1] || !argv[2] || !argv[3])
+    if (!argv[1] || !argv[2] || !argv[3] || !argv[4])
     {
         cout << "\nFields are missing";
-        cout << "Example: ./objectFile https://www.google.com ./pages/temp 5";
+        cout << "Example: ./objectFile https://www.google.com ./pages/temp max-depth(number) pagesPerPage(number)";
         return 0;
     }
-    obj->dfs(argv[1], argv[2], obj->stringIntoLong(argv[3]));
+    obj->dfs(argv[1], argv[2], obj->stringIntoLong(argv[3]), obj->stringIntoLong(argv[4]));
     delete obj;
     cout << "\n";
     return 0;
 }
-
-// max link count
-// string compact

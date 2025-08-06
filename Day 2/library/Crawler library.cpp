@@ -328,18 +328,18 @@ char *Crawler::readFile(const char *filePath)
 }
 
 // function for user to use it
-void Crawler::dfs(char *url, char *path, int maxDepthCount)
+void Crawler::dfs(char *url, char *path, int maxDepthCount, int maxFoundPerPage)
 {
     if (!url || !path || !maxDepthCount || maxDepthCount <= 0)
     {
         return;
     }
     allUrls->hashInsertion(url, 0);
-    fileGetDfs(url, path, maxDepthCount);
+    fileGetDfs(url, path, maxDepthCount, maxFoundPerPage);
 }
 
 // recursively download html file -> read it -> extract all html anchor tag links -> again repeat until maxDepthCount comes
-void Crawler::fileGetDfs(char *url, const char *path, int maxDepthCount)
+void Crawler::fileGetDfs(char *url, const char *path, int maxDepthCount, int maxFoundPerPage)
 {
     if (!url || !path || !maxDepthCount || maxDepthCount <= 0)
     {
@@ -369,10 +369,10 @@ void Crawler::fileGetDfs(char *url, const char *path, int maxDepthCount)
     // cout << allData;
     allData = normalizeTextByRemovingSpaces(allData);
     char **thisPageUrl = readHtmlUrls(allData, url);
-    for (int i = 0; thisPageUrl[i]; i++)
+    for (int i = 0; thisPageUrl[i] && i < maxDepthCount; i++)
     {
         allUrls->hashInsertion(thisPageUrl[i], 0);
-        fileGetDfs(thisPageUrl[i], path, maxDepthCount - 1);
+        fileGetDfs(thisPageUrl[i], path, maxDepthCount - 1, maxDepthCount);
     }
     clearArrayOfString(thisPageUrl);
     clearCharacters(allData);

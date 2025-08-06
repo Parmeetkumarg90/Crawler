@@ -112,7 +112,7 @@ char *Crawler::readFile(const char *filePath)
     char ch, *allData = new char[100000];
     while (file.get(ch))
     {
-        if (i >= 99999)
+        if (i >= 99990)
         {
             break;
         }
@@ -166,7 +166,7 @@ void Crawler::fileGetDfs(char *url, const char *path, int maxDepthCount, int max
     }
     // cout << allData;
     allData = charObj->normalizeTextByRemovingSpaces(allData);
-    char **thisPageUrl = readHtmlUrls(allData, url);
+    char **thisPageUrl = readHtmlUrls(allData, url, maxFoundPerPage);
     for (int i = 0; thisPageUrl[i] && i < maxDepthCount; i++)
     {
         allUrls->hashInsertion(thisPageUrl[i], 0);
@@ -178,9 +178,9 @@ void Crawler::fileGetDfs(char *url, const char *path, int maxDepthCount, int max
 }
 
 // find all urls
-char **Crawler::readHtmlUrls(const char *allData, const char *url)
+char **Crawler::readHtmlUrls(const char *allData, const char *url, int maxFoundPerPage)
 {
-    char **thisPageUrls = new char *[20]();
+    char **thisPageUrls = new char *[maxFoundPerPage]();
     int startIndex = 0, urlIndex = 0;
     // bool isRelativeUrl = false;
     for (int i = 10; allData[i]; i++)

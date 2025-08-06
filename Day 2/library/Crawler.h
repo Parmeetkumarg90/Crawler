@@ -14,7 +14,7 @@ private:
     char *generateUniqueName();                                                           // generate a unique name
     char *wgetFileDownload(const char *url, const char *path);                            // function to fetch a url
     char *readFile(const char *filePath);                                                 // read a file
-    char **readHtmlUrls(const char *allData, const char *url);                            // find all Html or /(at end) urls
+    char **readHtmlUrls(const char *allData, const char *url, int maxFoundPerPage);       // find all Html or /(at end) urls
     void fileGetDfs(char *url, const char *path, int maxDepthCount, int maxFoundPerPage); // recursively download html file -> read it -> extract all html anchor tag links -> again repeat until maxDepthCount comes
 
 public:

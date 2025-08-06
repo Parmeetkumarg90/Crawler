@@ -59,14 +59,17 @@ void Character::my_strcpy(char *dest, const char *src)
 // Append src to dest
 void Character::my_strcat(char *dest, const char *src)
 {
-    int i, sizeOfSrc = size_tmy_strlen(src), sizeOfDest = size_tmy_strlen(dest);
-    for (i = 0; i < sizeOfDest; i++)
+    int i = 0;
+    while (dest[i] != '\0')
     {
+        i++;
     }
-    for (int j = 0; j < sizeOfSrc; j++)
+    int j = 0;
+    while (src[j] != '\0')
     {
         dest[i] = src[j];
         i++;
+        j++;
     }
     dest[i] = '\0';
 }
@@ -260,24 +263,30 @@ char *Character::readFile(const char *filePath)
     return allData;
 }
 
-void Character::clearArrayOfString(char **data)
+void Character::clearArrayOfString(char **&data)
 {
-    int i = 0;
-    while (data[i] != nullptr)
+    if (data)
     {
-        if (data[i])
+        int i = 0;
+        while (data[i] != nullptr)
         {
-            delete[] data[i];
+            if (data[i])
+            {
+                delete[] data[i];
+            }
+            i++;
         }
-        i++;
+        delete[] data;
     }
-    delete[] data;
     data = nullptr;
 }
 
-void Character::clearCharacters(char *data)
+void Character::clearCharacters(char *&data)
 {
-    delete[] data;
+    if (data)
+    {
+        delete[] data;
+    }
     data = nullptr;
 }
 
@@ -363,7 +372,7 @@ char *Character::my_strstr(const char *haystack, const char *needle)
 {
     char *newhaystack = new char[size_tmy_strlen(haystack) + 1];
     my_strcpy(newhaystack, haystack);
-    char *newneedle = new char[size_tmy_strlen(haystack) + 1];
+    char *newneedle = new char[size_tmy_strlen(needle) + 1];
     my_strcpy(newneedle, needle);
     lowercase(newhaystack);
     lowercase(newneedle);

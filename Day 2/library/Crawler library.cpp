@@ -14,6 +14,7 @@ Crawler::Crawler()
 Crawler::~Crawler()
 {
     delete allUrls;
+    delete charObj;
 }
 
 // is directory present
@@ -48,14 +49,13 @@ char *Crawler::generateUniqueName()
 // function to fetch a url
 char *Crawler::wgetFileDownload(const char *url, const char *path)
 {
-    char *command = new char[100](), *unqiueName = generateUniqueName(), *space = new char[2]{' ', '\0'};
-    if (!url)
+    if (!url || !path)
     {
-        cout << "Please enter a url";
+        cout << "Please enter a url or path";
         return nullptr;
     }
+    char *command = new char[charObj->size_tmy_strlen(url) + charObj->size_tmy_strlen(path) + 20](), *unqiueName = generateUniqueName(); //, *space = new char[2]{' ', '\0'};
     char urlPrefix[5] = "http";
-    urlPrefix[5] = '\0';
     char *isFound = charObj->my_strstr(url, urlPrefix);
     if (!isFound)
     {
@@ -73,12 +73,13 @@ char *Crawler::wgetFileDownload(const char *url, const char *path)
         makeDIrectory(path);
     }
     charObj->my_strcat(command, "wget -O");
-    charObj->my_strcat(command, space);
+    charObj->my_strcat(command, " ");
     charObj->my_strcat(command, path);
+    // charObj->my_strcat(command, "/");
     charObj->my_strcat(command, unqiueName);
-    charObj->my_strcat(command, space);
+    charObj->my_strcat(command, " ");
     charObj->my_strcat(command, url);
-    // cout << command;
+    cout << command;
     int result = system(command);
     if (result == 0)
     {
@@ -88,15 +89,18 @@ char *Crawler::wgetFileDownload(const char *url, const char *path)
     else
     {
         cout << "\nFile Download Failed";
+        charObj->clearCharacters(unqiueName);
+        charObj->clearCharacters(command);
+        // charObj->clearCharacters(space);
         return nullptr;
     }
     char *newPath = new char[charObj->size_tmy_strlen(path) + charObj->size_tmy_strlen(unqiueName) + 2];
     charObj->my_strcpy(newPath, path);
-    charObj->my_strcat(newPath, "/");
+    // charObj->my_strcat(newPath, "/");
     charObj->my_strcat(newPath, unqiueName);
     charObj->clearCharacters(unqiueName);
     charObj->clearCharacters(command);
-    charObj->clearCharacters(space);
+    // charObj->clearCharacters(space);
     return newPath;
 }
 
@@ -167,12 +171,19 @@ void Crawler::fileGetDfs(char *url, const char *path, int maxDepthCount, int max
     // cout << allData;
     allData = charObj->normalizeTextByRemovingSpaces(allData);
     char **thisPageUrl = readHtmlUrls(allData, url, maxFoundPerPage);
-    for (int i = 0; thisPageUrl[i] && i < maxDepthCount; i++)
+    if (!thisPageUrl)
     {
-        allUrls->hashInsertion(thisPageUrl[i], 0);
-        fileGetDfs(thisPageUrl[i], path, maxDepthCount - 1, maxDepthCount);
+        charObj->clearCharacters(allData);
+        charObj->clearCharacters(currFilePath);
+        return;
     }
-    charObj->clearArrayOfString(thisPageUrl);
+    for (int i = 0; thisPageUrl[i] && i < maxFoundPerPage; i++)
+    {
+        char *urlCopy = new char[charObj->size_tmy_strlen(thisPageUrl[i]) + 1];
+        charObj->my_strcpy(urlCopy, thisPageUrl[i]);
+        allUrls->hashInsertion(urlCopy, 0);
+        fileGetDfs(urlCopy, path, maxDepthCount - 1, maxFoundPerPage);
+    }
     charObj->clearCharacters(allData);
     charObj->clearCharacters(currFilePath);
 }
@@ -180,12 +191,12 @@ void Crawler::fileGetDfs(char *url, const char *path, int maxDepthCount, int max
 // find all urls
 char **Crawler::readHtmlUrls(const char *allData, const char *url, int maxFoundPerPage)
 {
-    char **thisPageUrls = new char *[maxFoundPerPage]();
+    char **thisPageUrls = new char *[maxFoundPerPage + 1]();
     int startIndex = 0, urlIndex = 0;
     // bool isRelativeUrl = false;
     for (int i = 10; allData[i]; i++)
     {
-        if (urlIndex == 20)
+        if (urlIndex + 1 == maxFoundPerPage)
         {
             break;
         }
@@ -225,10 +236,12 @@ char **Crawler::readHtmlUrls(const char *allData, const char *url, int maxFoundP
                     //     }
                     //     isRelativeUrl = false;
                     // }
-                    while (startIndex < i)
+                    int temp = startIndex;
+                    while (temp < i)
                     {
-                        newUrl[j++] = allData[startIndex++];
+                        newUrl[j++] = allData[temp++];
                     }
+
                     newUrl[j] = '\0';
                     thisPageUrls[urlIndex++] = newUrl;
                 }
@@ -236,208 +249,6 @@ char **Crawler::readHtmlUrls(const char *allData, const char *url, int maxFoundP
             startIndex = 0;
         }
     }
-    thisPageUrls[urlIndex++] = nullptr;
+    thisPageUrls[urlIndex] = nullptr;
     return thisPageUrls;
 }
-
-// void clearArrayOfString(char **data)
-// {
-//     int i = 0;
-//     while (data[i] != nullptr)
-//     {
-//         if (data[i])
-//         {
-//             delete[] data[i];
-//         }
-//         i++;
-//     }
-//     delete[] data;
-//     data = nullptr;
-// }
-
-// void clearCharacters(char *data)
-// {
-//     delete[] data;
-//     data = nullptr;
-// }
-
-// // Append src to dest
-// void my_strcat(char *dest, const char *src)
-// {
-//     int i, sizeOfSrc = size_tmy_strlen(src), sizeOfDest = size_tmy_strlen(dest);
-//     for (i = 0; i < sizeOfDest; i++)
-//     {
-//     }
-//     for (int j = 0; j < sizeOfSrc; j++)
-//     {
-//         dest[i] = src[j];
-//         i++;
-//     }
-//     dest[i] = '\0';
-// }
-
-// // convert character into lowercase
-// char charLowerCase(char c)
-// {
-//     if (c >= 'A' && c <= 'Z')
-//     {
-//         return c + 32; // Convert to lowercase
-//     }
-//     return c;
-// }
-
-// // remove white spaces
-// char *normalizeTextByRemovingSpaces(char *text)
-// {
-//     int i = 0, j = 0;
-//     for (; text[i]; i++)
-//     {
-//         if (text[i] == '\t' || text[i] == ' ' || text[i] == '\n')
-//         {
-//             continue;
-//         }
-//         else
-//         {
-//             text[j] = text[i];
-//             j++;
-//         }
-//     }
-//     text[j] = '\0';
-//     return text;
-// }
-
-// // return length before '\0'
-// int size_tmy_strlen(const char *s)
-// {
-//     int count = 0;
-//     while (s[count] != '\0')
-//     {
-//         count++;
-//     }
-//     return count;
-// }
-
-// // convert into lower case
-// void lowercase(char *ch)
-// {
-//     if (!ch)
-//         return;
-//     int i = 0;
-//     while (ch[i] != '\0')
-//     {
-//         if (ch[i] >= 'A' && ch[i] <= 'Z')
-//         {
-//             ch[i] += 32;
-//         }
-//         i++;
-//     }
-// }
-
-// // convert long into string
-// void longIntoString(long long num, char *str)
-// {
-//     str[0] = '/';
-//     if (num == 0)
-//     {
-//         str[1] = '0';
-//         str[2] = '\0';
-//     }
-//     else
-//     {
-//         int i = 1, rem = 0;
-//         if (num < 0)
-//         {
-//             num = -num;
-//             str[i] = '-';
-//             i++;
-//         }
-//         long long revNum = 0;
-//         while (num > 0)
-//         {
-//             rem = num % 10;
-//             revNum = revNum * 10 + rem;
-//             num /= 10;
-//         }
-//         while (revNum > 0)
-//         {
-//             str[i] = (revNum % 10) + '0';
-//             revNum /= 10;
-//             i++;
-//         }
-//         str[i] = '\0';
-//     }
-//     char extension[] = {'.', 'h', 't', 'm', 'l', '\0'};
-//     my_strcat(str, extension);
-// }
-
-// // convert string into number
-// long long stringIntoLong(char *str)
-// {
-//     int size = size_tmy_strlen(str), i = 0;
-//     long long num = 0;
-//     bool isNegative = false;
-//     if (str[i] == '-')
-//     {
-//         isNegative = true;
-//         i++;
-//     }
-//     for (; i < size; i++)
-//     {
-//         num = num * 10 + (str[i] - '0');
-//     }
-//     return num;
-// }
-
-// // Copy src into dest
-// void my_strcpy(char *dest, const char *src)
-// {
-//     int i, sizeOfSrc = size_tmy_strlen(src);
-//     for (i = 0; i < sizeOfSrc; i++)
-//     {
-//         dest[i] = src[i];
-//     }
-//     dest[i] = '\0';
-// }
-
-// // Substring search
-// char *my_strstr(const char *haystack, const char *needle)
-// {
-//     char *newhaystack = new char[size_tmy_strlen(haystack) + 1];
-//     my_strcpy(newhaystack, haystack);
-//     char *newneedle = new char[size_tmy_strlen(haystack) + 1];
-//     my_strcpy(newneedle, needle);
-//     lowercase(newhaystack);
-//     lowercase(newneedle);
-//     int sizeOfNeedle = size_tmy_strlen(newneedle), sizeOfHayStack = size_tmy_strlen(newhaystack);
-//     for (int i = 0; i < sizeOfHayStack; i++)
-//     {
-//         for (int j = 0; j < sizeOfNeedle; j++)
-//         {
-//             if (newhaystack[i] == newneedle[j])
-//             {
-//                 int compareLength = 0, traverI = i;
-//                 for (int k = 0; k < sizeOfNeedle; k++)
-//                 {
-//                     if (newhaystack[traverI] == newneedle[k])
-//                     {
-//                         traverI++;
-//                         compareLength++;
-//                     }
-//                     else
-//                     {
-//                         k = sizeOfNeedle;
-//                     }
-//                 }
-//                 if (compareLength == sizeOfNeedle)
-//                 {
-//                     delete[] newhaystack;
-//                     delete[] newneedle;
-//                     return (char *)&haystack[i];
-//                 }
-//             }
-//         }
-//     }
-//     delete[] newhaystack;
-//     delete[] newneedle;
-//     return nullptr;
-// }

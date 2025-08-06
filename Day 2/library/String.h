@@ -20,10 +20,10 @@ public:
     char **most_frequent_word(const char *text, const char **stopwords, int stopcount); // most frequestly used words
 
     // Task 2
-    char *readFile(const char *filePath); // read a file
-    char **tokenizer(const char *data);   // return all fields
-    void clearArrayOfString(char **data); // clear a array of character string
-    void clearCharacters(char *data);     // clear a array of characters
+    char *readFile(const char *filePath);  // read a file
+    char **tokenizer(const char *data);    // return all fields
+    void clearArrayOfString(char **&data); // clear a array of character string
+    void clearCharacters(char *&data);     // clear a array of characters
 
     // // Task 3
     char *fillPlaceholder(char *text, HashMap<char *, char *> *obj);

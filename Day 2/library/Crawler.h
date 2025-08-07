@@ -7,6 +7,8 @@
 class Crawler
 {
 private:
+    const char **stopWords, **notAllowed;
+    int stopWordCount, notAllowedCount;
     Character *charObj;                                        // used for all string operations
     HashMap<char *, int> *allUrls;                             // all urls stored in it
     bool isDirectoryPresent(const char *dirPath);              // is directory present
@@ -14,7 +16,9 @@ private:
     char *generateUniqueName();                                // generate a unique name
     char *wgetFileDownload(const char *url, const char *path); // function to fetch a url
     char *readFile(const char *filePath);                      // read a file
-    void createLogFile();                                      // log file containing
+    bool isUrlReachAble(const char *url);                      // check if url is reachable or not
+    void createLogFile(const char *url,
+                       const char *filePath, char **mostFrequentWords); // log file containing
     char **readHtmlUrls(const char *allData, const char *url,
                         int maxFoundPerPage); // find all Html or /(at end) urls
     void fileGetDfs(char *url, const char *path,

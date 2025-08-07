@@ -166,16 +166,22 @@ char **Character::most_frequent_word(const char *text, const char **stopwords, i
         if (node)
         {
             frequentWords[wordI] = node->getKey();
-            wordI++;
             node->setVal(node->getValue() + 1);
+            wordI++;
+            if (wordI >= 10)
+            {
+                break;
+            }
         }
         else if (!obj->isPresent(allWords[i]))
         {
             obj->hashInsertion(allWords[i], 1);
         }
+        delete node;
         node = nullptr;
     }
     delete obj;
+    obj = nullptr;
     return frequentWords;
 }
 
@@ -199,11 +205,15 @@ char **Character::tokenizer(const char *data)
         return nullptr;
     }
     int wordI = 0, fieldI = 0, i;
-    char **allFields = new char *[50];
-    char *eachWord = new char[15];
+    char **allFields = new char *[20000]();
+    char *eachWord = new char[15]();
     bool isWord = false;
     for (i = 0; data[i] != '\0'; i++)
     {
+        if (wordI >= 14 || fieldI >= 19998)
+        {
+            break;
+        }
         if (data[i] == ' ' || data[i] == ',' || data[i] == '\n')
         {
             if (isWord)
@@ -562,4 +572,18 @@ bool Character::startsWith(const char *mainStr, const char *searchStr)
         j++;
     }
     return true;
+}
+
+char *Character::findExtension(const char *str)
+{
+    int size = size_tmy_strlen(str) - 1;
+    while (size >= 0)
+    {
+        if (str[size] == '.')
+        {
+            return (char *)&str[size];
+        }
+        size--;
+    }
+    return nullptr;
 }

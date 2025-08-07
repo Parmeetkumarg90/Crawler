@@ -179,28 +179,26 @@ void Crawler::fileGetDfs(char *url, const char *path, int maxDepthCount, int max
     }
     // cout << currFilePath;
     // cout << "\n\n\nhere";
-    // cout << "\n\n\n " << url << "\n\n\n";
+    cout << "\n\n\n file download";
     char *allData = readFile(currFilePath);
-    // cout << "\n\n\nhere";
     if (!allData)
     {
         charObj->clearCharacters(currFilePath);
         return;
     }
+    cout << "\n\n\n file read";
     // cout << allData;
     allData = charObj->normalizeTextByRemovingSpaces(allData);
-    char **mostFrequentWords = charObj->most_frequent_word(allData, stopWords, stopWordCount);
-    createLogFile(url, currFilePath, mostFrequentWords);
-    for (int i = 0; mostFrequentWords[i]; i++)
-    {
-        cout << mostFrequentWords[i] << " ";
-    }
+    cout << "\n\n\n file normalized";
+    // char **mostFrequentWords = charObj->most_frequent_word(allData, stopWords, stopWordCount);
+    // createLogFile(url, currFilePath, mostFrequentWords);
     char **thisPageUrl = readHtmlUrls(allData, url, maxFoundPerPage);
+    cout << "\n\n\n all urls read";
     if (!thisPageUrl)
     {
         charObj->clearCharacters(allData);
         charObj->clearCharacters(currFilePath);
-        charObj->clearArrayOfString(mostFrequentWords);
+        // charObj->clearArrayOfString(mostFrequentWords);
         return;
     }
     for (int i = 0; thisPageUrl[i] && i < maxFoundPerPage; i++)
@@ -213,7 +211,7 @@ void Crawler::fileGetDfs(char *url, const char *path, int maxDepthCount, int max
     }
     charObj->clearCharacters(allData);
     charObj->clearCharacters(currFilePath);
-    charObj->clearArrayOfString(mostFrequentWords);
+    // charObj->clearArrayOfString(mostFrequentWords);
     // charObj->clearArrayOfString(thisPageUrl); // remove
 }
 
@@ -254,7 +252,7 @@ char **Crawler::readHtmlUrls(const char *allData, const char *url, int maxFoundP
             {
                 int newUrlSize = isRelativeUrl ? (mainUrlSize + (i - startIndex) + 1) : ((i - startIndex) + 1);
                 char *newUrl = new char[newUrlSize + 5]();
-                char *dummyUrl = new char[(i - startIndex) + 5]();
+                char *dummyUrl = new char[(i - startIndex) + 1]();
                 int j = 0, temp = startIndex;
                 while (temp < i)
                 {
@@ -275,6 +273,8 @@ char **Crawler::readHtmlUrls(const char *allData, const char *url, int maxFoundP
                         if (charObj->my_strcmp(dummyUrl, "/") == 0 || charObj->my_strcmp(dummyUrl, "./") == 0)
                         {
                             charObj->clearCharacters(dummyUrl);
+                            charObj->clearCharacters(newUrl);
+                            continue;
                         }
                     }
                     else
@@ -318,7 +318,7 @@ bool Crawler::isUrlReachAble(const char *url)
     return system(checkUrl) == 0;
 }
 
-void Crawler::createLogFile(const char *url, const char *filePath, char **mostFrequentWords)
+void Crawler::createLogFile(const char *url, const char *filePath, char *mostFrequentWord)
 {
     if (!url || !filePath)
     {
@@ -331,10 +331,39 @@ void Crawler::createLogFile(const char *url, const char *filePath, char **mostFr
         return;
     }
     file << "\n";
-    file << url << "->" << filePath << "->";
-    for (int i = 0; mostFrequentWords[i]; i++)
-    {
-        file << mostFrequentWords[i] << ",";
-    }
+    file << url << "->" << filePath << "->" << mostFrequentWord;
     file.close();
+}
+
+// Most frequently used word(ignoring stopwords)
+char *Crawler::most_frequent_word(const char *text, const char **stopwords, int stopcount)
+{
+    if (!text)
+    {
+        return nullptr;
+    }
+    char *frequentWord = new char[20]();
+    int i = 0, currWordI = 0;
+    bool isTag = false;
+    HashMap<char *, int> *obj = new HashMap<char *, int>();
+    while (text[i])
+    {
+        if (text[i] == '<' && !isTag)
+        {
+            isTag = true;
+        }
+        else if (isTag)
+        {
+            if (text[i] == '>')
+            {
+                isTag = false;
+            }
+            i++;
+        }
+        else // all main text
+        {
+        }
+        i++;
+    }
+    return frequentWord;
 }

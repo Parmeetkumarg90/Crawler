@@ -140,7 +140,7 @@ int Character::count_words(const char *s)
     return totalWord;
 }
 
-// Most frequently used word (ignoring stopwords)
+// Most frequently used word(ignoring stopwords)
 char **Character::most_frequent_word(const char *text, const char **stopwords, int stopcount)
 {
     if (!text)
@@ -177,7 +177,6 @@ char **Character::most_frequent_word(const char *text, const char **stopwords, i
         {
             obj->hashInsertion(allWords[i], 1);
         }
-        delete node;
         node = nullptr;
     }
     delete obj;

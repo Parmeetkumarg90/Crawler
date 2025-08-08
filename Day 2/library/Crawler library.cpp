@@ -347,14 +347,13 @@ char *Crawler::most_frequent_word(char *text, const char **stopwords, int stopco
     char *frequentWord = new char[20]();
     char *traverseWord = new char[20]();
     int i = 0, startI = 0, endI = 0, maxCount = 0;
-    bool isTag = false;
     char *newText = removeTags(text);
     HashMap<char *, int> *obj = new HashMap<char *, int>();
     while (newText[i])
     {
         if ((charObj->charLowerCase(newText[i]) >= 97 && charObj->charLowerCase(newText[i]) <= 122) || (charObj->charLowerCase(newText[i]) >= 48 && charObj->charLowerCase(newText[i]) <= 57))
         {
-            if (endI < 18)
+            if (endI < 19)
             {
                 traverseWord[endI] = newText[i];
                 endI++;
@@ -363,10 +362,10 @@ char *Crawler::most_frequent_word(char *text, const char **stopwords, int stopco
         }
         else
         {
-            if (endI > 0)
+            if (endI > 1)
             {
                 traverseWord[endI] = '\0';
-                bool isStop = charObj->findWordInArrayOfChar(traverseWord, stopWords);
+                bool isStop = charObj->findWordInArrayOfChar(traverseWord, stopwords);
                 if (!isStop)
                 {
                     Node<char *, int> *node = obj->getNode(traverseWord);
@@ -400,11 +399,11 @@ char *Crawler::most_frequent_word(char *text, const char **stopwords, int stopco
     charObj->clearCharacters(traverseWord);
     charObj->clearCharacters(newText);
     // obj->hashDisplay();
-    auto node = obj->getNode(frequentWord);
-    if (node)
-    {
-        cout << "\t " << node->getKey() << "\t " << node->getValue();
-    }
+    // auto node = obj->getNode(frequentWord);
+    // if (node)
+    // {
+    //     cout << "\t " << node->getKey() << "\t " << node->getValue();
+    // }
     // cout << "\t " << obj->getNode(frequentWord)->getKey() << "\t " << obj->getNode(frequentWord)->getValue();
     delete obj;
     // cout << "\n\n " << frequentWord << "\n\n";
@@ -414,20 +413,36 @@ char *Crawler::most_frequent_word(char *text, const char **stopwords, int stopco
 // remove all html tags
 char *Crawler::removeTags(const char *text)
 {
-    bool inTag = false;
-    int currI = 0;
     char *newText = new char[charObj->size_tmy_strlen(text) + 1]();
+    bool inTag = false, isCss = false, isScript = false;
+    int currI = 0;
     for (int i = 0; text[i]; i++)
     {
         if (text[i] == '<')
         {
             inTag = true;
+            if (charObj->startsWith(&text[i], "<style"))
+            {
+                isCss = true;
+            }
+            else if (charObj->startsWith(&text[i], "</style>"))
+            {
+                isCss = false;
+            }
+            if (charObj->startsWith(&text[i], "<script"))
+            {
+                isScript = true;
+            }
+            else if (charObj->startsWith(&text[i], "</script>"))
+            {
+                isScript = false;
+            }
         }
         else if (text[i] == '>')
         {
             inTag = false;
         }
-        else if (!inTag)
+        else if (!inTag && !isCss && !isScript)
         {
             newText[currI++] = text[i];
         }

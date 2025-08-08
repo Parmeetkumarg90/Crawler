@@ -9,7 +9,7 @@ Crawler::Crawler()
 {
     allUrls = new HashMap<char *, int>();
     charObj = new Character();
-    static const char *sw[] = {"a", "am", "an", "and", "are", "at", "because", "but", "by", "can", "could", "did", "do", "does", "for", "had", "has", "have", "how", "if", "in", "is", "may", "might", "must", "my", "of", "on", "or", "shall", "should", "the", "to", "was", "were", "what", "when", "where", "while", "who", "why", "will", "with", "would", "you", "your", "html", "p", "nav", "div", "class", "id", "style", "<", ">", nullptr};
+    static const char *sw[] = {"a", "am", "an", "and", "are", "at", "because", "but", "by", "can", "could", "did", "do", "does", "for", "had", "has", "have", "how", "if", "in", "is", "may", "might", "must", "my", "of", "on", "or", "shall", "should", "the", "to", "was", "were", "what", "when", "where", "while", "who", "why", "will", "with", "would", "you", "your", nullptr};
     static const char *na[] = {".aac", ".aax", ".ai", ".aiff", ".alac", ".ape", ".au", ".avi", ".avif", ".bmp", ".bpg", ".css", ".dss", ".eot", ".eps", ".f4v", ".flac", ".flv", ".gif", ".gsm", ".heic", ".heif", ".ico", ".java", ".jpeg", ".jpg", ".js", ".json", ".jsx", ".less", ".m4a", ".m4v", ".mkv", ".mov", ".mp3", ".mp4", ".mpc", ".mpeg", ".mpg", ".ogg", ".otf", ".pdf", ".png", ".psd", ".py", ".raw", ".sass", ".scss", ".svg", ".tif", ".tiff", ".ts", ".tsx", ".ttf", ".wav", ".webm", ".webp", ".wma", ".wmv", ".woff", ".woff2", nullptr};
     stopWordCount = sizeof(sw) / sizeof(sw[0]);
     notAllowedCount = sizeof(na) / sizeof(na[0]);
@@ -152,6 +152,7 @@ void Crawler::dfs(char *url, char *path, int maxDepthCount, int maxFoundPerPage)
     {
         return;
     }
+    charObj->lowercase(url);
     allUrls->hashInsertion(url, 0);
     fileGetDfs(url, path, maxDepthCount, maxFoundPerPage);
 }
@@ -159,7 +160,7 @@ void Crawler::dfs(char *url, char *path, int maxDepthCount, int maxFoundPerPage)
 // recursively download html file -> read it -> extract all html anchor tag links -> again repeat until maxDepthCount comes
 void Crawler::fileGetDfs(char *url, const char *path, int maxDepthCount, int maxFoundPerPage)
 {
-    if (!url || !path || !maxDepthCount || maxDepthCount <= 0)
+    if (!url || !path || maxDepthCount <= 0)
     {
         return;
     }
@@ -179,28 +180,28 @@ void Crawler::fileGetDfs(char *url, const char *path, int maxDepthCount, int max
     }
     // cout << currFilePath;
     // cout << "\n\n\nhere";
-    cout << "\n\n\n file download";
+    // cout << "\n\n\n file download";
     char *allData = readFile(currFilePath);
     if (!allData)
     {
         charObj->clearCharacters(currFilePath);
         return;
     }
-    cout << "\n\n\n file read";
+    // cout << "\n\n\n file read";
     // cout << allData;
+    char *mostFrequentWord = most_frequent_word(allData, stopWords, stopWordCount);
     allData = charObj->normalizeTextByRemovingSpaces(allData);
-    cout << "\n\n\n file normalized";
-    // char **mostFrequentWords = charObj->most_frequent_word(allData, stopWords, stopWordCount);
-    // createLogFile(url, currFilePath, mostFrequentWords);
+    // cout << "\n\n\n file normalized";
+    createLogFile(url, mostFrequentWord);
     char **thisPageUrl = readHtmlUrls(allData, url, maxFoundPerPage);
-    cout << "\n\n\n all urls read";
     if (!thisPageUrl)
     {
         charObj->clearCharacters(allData);
         charObj->clearCharacters(currFilePath);
-        // charObj->clearArrayOfString(mostFrequentWords);
+        charObj->clearCharacters(mostFrequentWord);
         return;
     }
+    // cout << "\n\n\n all urls read";
     for (int i = 0; thisPageUrl[i] && i < maxFoundPerPage; i++)
     {
         char *urlCopy = new char[charObj->size_tmy_strlen(thisPageUrl[i]) + 1]();
@@ -211,7 +212,7 @@ void Crawler::fileGetDfs(char *url, const char *path, int maxDepthCount, int max
     }
     charObj->clearCharacters(allData);
     charObj->clearCharacters(currFilePath);
-    // charObj->clearArrayOfString(mostFrequentWords);
+    charObj->clearCharacters(mostFrequentWord);
     // charObj->clearArrayOfString(thisPageUrl); // remove
 }
 
@@ -228,7 +229,7 @@ char **Crawler::readHtmlUrls(const char *allData, const char *url, int maxFoundP
         {
             continue;
         }
-        if (urlIndex + 1 == maxFoundPerPage)
+        if (urlIndex >= maxFoundPerPage)
         {
             break;
         }
@@ -292,6 +293,7 @@ char **Crawler::readHtmlUrls(const char *allData, const char *url, int maxFoundP
                     // if ()
                     // {
                     // cout << "\n\n\n " << newUrl << "\n\n\n";
+                    charObj->lowercase(newUrl);
                     thisPageUrls[urlIndex++] = newUrl;
                     // }
                 }
@@ -318,9 +320,9 @@ bool Crawler::isUrlReachAble(const char *url)
     return system(checkUrl) == 0;
 }
 
-void Crawler::createLogFile(const char *url, const char *filePath, char *mostFrequentWord)
+void Crawler::createLogFile(const char *url, char *mostFrequentWord)
 {
-    if (!url || !filePath)
+    if (!url)
     {
         return;
     }
@@ -330,40 +332,107 @@ void Crawler::createLogFile(const char *url, const char *filePath, char *mostFre
         cout << "Log File Created";
         return;
     }
-    file << "\n";
-    file << url << "->" << filePath << "->" << mostFrequentWord;
+    file << mostFrequentWord << " - " << url;
+    file << "\n\n";
     file.close();
 }
 
 // Most frequently used word(ignoring stopwords)
-char *Crawler::most_frequent_word(const char *text, const char **stopwords, int stopcount)
+char *Crawler::most_frequent_word(char *text, const char **stopwords, int stopcount)
 {
     if (!text)
     {
         return nullptr;
     }
     char *frequentWord = new char[20]();
-    int i = 0, currWordI = 0;
+    char *traverseWord = new char[20]();
+    int i = 0, startI = 0, endI = 0, maxCount = 0;
     bool isTag = false;
+    char *newText = removeTags(text);
     HashMap<char *, int> *obj = new HashMap<char *, int>();
-    while (text[i])
+    while (newText[i])
     {
-        if (text[i] == '<' && !isTag)
+        if ((charObj->charLowerCase(newText[i]) >= 97 && charObj->charLowerCase(newText[i]) <= 122) || (charObj->charLowerCase(newText[i]) >= 48 && charObj->charLowerCase(newText[i]) <= 57))
         {
-            isTag = true;
-        }
-        else if (isTag)
-        {
-            if (text[i] == '>')
+            if (endI < 18)
             {
-                isTag = false;
+                traverseWord[endI] = newText[i];
+                endI++;
+                traverseWord[endI] = '\0';
             }
-            i++;
         }
-        else // all main text
+        else
         {
+            if (endI > 0)
+            {
+                traverseWord[endI] = '\0';
+                bool isStop = charObj->findWordInArrayOfChar(traverseWord, stopWords);
+                if (!isStop)
+                {
+                    Node<char *, int> *node = obj->getNode(traverseWord);
+                    if (!node)
+                    {
+                        char *keyword = new char[charObj->size_tmy_strlen(traverseWord) + 1]();
+                        charObj->my_strcpy(keyword, traverseWord);
+                        obj->hashInsertion(keyword, 1);
+                        if (maxCount < 1)
+                        {
+                            maxCount = 1;
+                            charObj->my_strcpy(frequentWord, keyword);
+                        }
+                    }
+                    else
+                    {
+                        int count = node->getValue() + 1;
+                        node->setVal(count);
+                        if (maxCount < count)
+                        {
+                            maxCount = count;
+                            charObj->my_strcpy(frequentWord, node->getKey());
+                        }
+                    }
+                }
+                endI = 0;
+            }
         }
         i++;
     }
+    charObj->clearCharacters(traverseWord);
+    charObj->clearCharacters(newText);
+    // obj->hashDisplay();
+    auto node = obj->getNode(frequentWord);
+    if (node)
+    {
+        cout << "\t " << node->getKey() << "\t " << node->getValue();
+    }
+    // cout << "\t " << obj->getNode(frequentWord)->getKey() << "\t " << obj->getNode(frequentWord)->getValue();
+    delete obj;
+    // cout << "\n\n " << frequentWord << "\n\n";
     return frequentWord;
+}
+
+// remove all html tags
+char *Crawler::removeTags(const char *text)
+{
+    bool inTag = false;
+    int currI = 0;
+    char *newText = new char[charObj->size_tmy_strlen(text) + 1]();
+    for (int i = 0; text[i]; i++)
+    {
+        if (text[i] == '<')
+        {
+            inTag = true;
+        }
+        else if (text[i] == '>')
+        {
+            inTag = false;
+        }
+        else if (!inTag)
+        {
+            newText[currI++] = text[i];
+        }
+    }
+    newText[currI] = '\0';
+    // cout << newText;
+    return newText;
 }

@@ -84,14 +84,14 @@ char *Crawler::wgetFileDownload(const char *url, const char *path)
         makeDIrectory(path);
     }
     // cout << "\n\n\nAfter path: " << path << unqiueName;
-    charObj->my_strcat(command, "wget -q -O");
+    charObj->my_strcat(command, "wget -O");
     charObj->my_strcat(command, " ");
     charObj->my_strcat(command, path);
     charObj->my_strcat(command, unqiueName);
     charObj->my_strcat(command, " \"");
     charObj->my_strcat(command, url);
     charObj->my_strcat(command, "\"");
-    // cout << "\n\n\n " << command;
+    cout << "\n\n\n " << command;
     int result = system(command);
     if (result == 0)
     {

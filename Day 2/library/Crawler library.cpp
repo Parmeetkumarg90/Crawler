@@ -96,7 +96,7 @@ char *Crawler::wgetFileDownload(const char *url, const char *path)
     if (result == 0)
     {
         cout << "\nFile Downloaded Success";
-        cout << "Path: " << path << "/" << unqiueName;
+        cout << "Path: " << path << unqiueName;
     }
     else
     {
@@ -152,7 +152,6 @@ void Crawler::dfs(char *url, char *path, int maxDepthCount, int maxFoundPerPage)
     {
         return;
     }
-    charObj->lowercase(url);
     allUrls->hashInsertion(url, 0);
     fileGetDfs(url, path, maxDepthCount, maxFoundPerPage);
 }
@@ -280,6 +279,12 @@ char **Crawler::readHtmlUrls(const char *allData, const char *url, int maxFoundP
                     }
                     else
                     {
+                        if (charObj->my_strcmp(dummyUrl, "/") == 0 || charObj->my_strcmp(dummyUrl, "./") == 0)
+                        {
+                            charObj->clearCharacters(dummyUrl);
+                            charObj->clearCharacters(newUrl);
+                            continue;
+                        }
                         charObj->my_strcat(newUrl, "/");
                         charObj->my_strcat(newUrl, url);
                         j += charObj->size_tmy_strlen(url);
@@ -293,7 +298,6 @@ char **Crawler::readHtmlUrls(const char *allData, const char *url, int maxFoundP
                     // if ()
                     // {
                     // cout << "\n\n\n " << newUrl << "\n\n\n";
-                    charObj->lowercase(newUrl);
                     thisPageUrls[urlIndex++] = newUrl;
                     // }
                 }
@@ -309,6 +313,7 @@ char **Crawler::readHtmlUrls(const char *allData, const char *url, int maxFoundP
     return thisPageUrls;
 }
 
+// checking if url is downloadable or not
 bool Crawler::isUrlReachAble(const char *url)
 {
     int urlSize = charObj->size_tmy_strlen(url);
@@ -320,21 +325,91 @@ bool Crawler::isUrlReachAble(const char *url)
     return system(checkUrl) == 0;
 }
 
+// used for creating a log file
 void Crawler::createLogFile(const char *url, char *mostFrequentWord)
 {
     if (!url)
     {
         return;
     }
-    fstream file("./pages/logFile.txt", ios::app);
-    if (!file.is_open())
+    char *allData = readFile("./pages/logFile.txt");
+    if (!allData)
     {
-        cout << "Log File Created";
-        return;
+        fstream file("./pages/logFile.txt", ios::app);
+        if (!file.is_open())
+        {
+            cout << "Log File Creation Error";
+            return;
+        }
+        file << "#" << mostFrequentWord << "->" << url;
+        file << "\n\n";
+        file.close();
     }
-    file << mostFrequentWord << " - " << url;
-    file << "\n\n";
-    file.close();
+    else
+    {
+        int indexIfPresent = isKeywordPresentinFile(allData, mostFrequentWord);
+        if (indexIfPresent == -1)
+        {
+            fstream file("./pages/logFile.txt", ios::app);
+            if (!file.is_open())
+            {
+                cout << "Log File Opening Error(Keyword Not Present)";
+                return;
+            }
+            file << "#" << mostFrequentWord << "->" << url << "," << "\n\n";
+            file.close();
+        }
+        else
+        {
+            fstream file("./pages/logFile.txt", ios::out | ios::trunc);
+            if (!file.is_open())
+            {
+                cout << "Log File Opening Error(Keyword Present)";
+                return;
+            }
+            int dataSize = charObj->size_tmy_strlen(allData), urlSize = charObj->size_tmy_strlen(url);
+            char *newAllData = new char[dataSize + urlSize + 10]();
+            int i = 0, j = 0, urlI = 0;
+            for (i = 0; i < indexIfPresent; i++) // copy all data before keyword
+            {
+                newAllData[j++] = allData[i];
+            }
+            for (; i < dataSize && allData[i] != '>'; i++) // copy all data before >
+            {
+                newAllData[j++] = allData[i];
+            }
+            newAllData[j++] = allData[i++];        // copy >
+            for (urlI = 0; urlI < urlSize; urlI++) // add url
+            {
+                newAllData[j++] = url[urlI];
+            }
+            newAllData[j++] = ',';    // add ","
+            for (; i < dataSize; i++) // add remaining portion
+            {
+                newAllData[j++] = allData[i];
+            }
+            file << newAllData;
+            file.close();
+            charObj->clearCharacters(newAllData);
+        }
+        charObj->clearCharacters(allData);
+    }
+}
+
+// return index from where it matched the keyword otherwise -1
+int Crawler::isKeywordPresentinFile(const char *allData, const char *keyword)
+{
+    for (int i = 0; allData[i] && allData[i] != '\0'; i++)
+    {
+        if (allData[i] == '#')
+        {
+            if (charObj->startsWith(&allData[i + 1], keyword))
+            {
+                return i + 1;
+            }
+        }
+    }
+    return -1;
 }
 
 // Most frequently used word(ignoring stopwords)

@@ -24,10 +24,23 @@ int main()
         cin >> wantCrawl;
         if (wantCrawl)
         {
+            cout << "\nEnter depth = ";
+            cin >> depth;
+            cout << "\nEnter maxLinkPerPage = ";
+            cin >> maxLinkPerPage;
+            obj->startCrawling(url, path, depth, maxLinkPerPage);
+        }
+        char *keywordUrls = obj->getUrls(allData, keyword);
+        if (!keywordUrls)
+        {
+            cout << "\nKeyword is not present";
         }
         else
         {
+            cout << "\nAll urls associated with this keyword = ";
+            cout << keywordUrls;
         }
+        delete[] keywordUrls;
     }
     else // url is not present
     {
@@ -51,5 +64,6 @@ int main()
     }
     delete[] allData;
     delete obj;
+    cout << "\n\n";
     return 0;
 }

@@ -18,6 +18,7 @@ SEO::~SEO()
 // started crawling the website
 void SEO::startCrawling(char *url, char *path, int depth, int maxUrlPerPage)
 {
+    deleteFiles(path);
     obj->dfs(url, path, depth, maxUrlPerPage);
 }
 
@@ -26,8 +27,10 @@ char *SEO::getAllData(const char *url, const char *path)
     return charObj->readFile(path);
 }
 
-char *SEO::getUrls(const char *allData, const char *keyword)
+char *SEO::getUrls(char *allData, char *keyword)
 {
+    charObj->lowercase(keyword);
+    charObj->lowercase(allData);
     for (int i = 0; allData[i]; i++)
     {
         if (allData[i] == '#')
@@ -35,12 +38,12 @@ char *SEO::getUrls(const char *allData, const char *keyword)
             bool isFound = charObj->startsWith(&allData[i + 1], keyword);
             if (isFound)
             {
-                while (allData[i] != '>')
+                while (allData[i] != '\0' && allData[i] != '>')
                 {
                     i++;
                 }
-                int start = i, end = -1;
-                while (allData[i] != '#')
+                int start = i + 1, end = -1;
+                while (allData[i] != '\0' && allData[i] != '#')
                 {
                     i++;
                 }
@@ -48,12 +51,12 @@ char *SEO::getUrls(const char *allData, const char *keyword)
                 if (end > start)
                 {
                     char *allUrls = new char[end - start + 2]();
-                    int i = 0;
+                    int j = 0;
                     while (start <= end)
                     {
-                        allUrls[i++] = allData[start++];
+                        allUrls[j++] = allData[start++];
                     }
-                    allUrls[i] = '\0';
+                    allUrls[j] = '\0';
                     return allUrls;
                 }
             }
@@ -62,6 +65,17 @@ char *SEO::getUrls(const char *allData, const char *keyword)
     return nullptr;
 }
 
-void deleteFiles(const char *path)
+void SEO::deleteFiles(const char *path)
 {
+    try
+    {
+        if (filesystem::exists(path))
+        {
+            filesystem::remove_all(path);
+        }
+    }
+    catch (...)
+    {
+        cout << "Error in file deletion";
+    }
 }

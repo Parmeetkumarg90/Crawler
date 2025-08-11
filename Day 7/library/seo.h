@@ -13,10 +13,10 @@ public:
     SEO();
     ~SEO();
     void startCrawling(char *url, char *path,
-                       int depth, int maxUrlPerPage);        // used for crawling
-    char *getAllData(const char *url, const char *path);     // used for reading log file
-    char *getUrls(const char *allData, const char *keyword); // used for getting keyword urls
-    void deleteFiles(const char *path);                      // used for removing old data
+                       int depth, int maxUrlPerPage);    // used for crawling
+    char *getAllData(const char *url, const char *path); // used for reading log file
+    char *getUrls(char *allData, char *keyword);         // used for getting keyword urls
+    void deleteFiles(const char *path);                  // used for removing old data
 };
 
 #include "./Seo library.cpp"

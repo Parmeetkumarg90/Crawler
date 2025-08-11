@@ -189,6 +189,7 @@ void Crawler::fileGetDfs(char *url, const char *path, int maxDepthCount, int max
     // cout << "\n\n\n file read";
     // cout << allData;
     char *mostFrequentWord = most_frequent_word(allData, stopWords, stopWordCount);
+    charObj->lowercase(mostFrequentWord);
     allData = charObj->normalizeTextByRemovingSpaces(allData);
     // cout << "\n\n\n file normalized";
     createLogFile(url, mostFrequentWord);

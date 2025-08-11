@@ -260,7 +260,7 @@ char *Character::readFile(const char *filePath)
         return nullptr;
     }
     int i = 0;
-    char ch, *allData = new char[1000];
+    char ch, *allData = new char[1000]();
     while (file.get(ch))
     {
         allData[i] = ch;

@@ -6,7 +6,7 @@ using namespace std;
 int main()
 {
     SEO *obj = new SEO();
-    char url[100] = {'\0'}, path[20] = {'\0'}, keyword[20] = {'\0'}, *allData = nullptr;
+    char url[100] = {'\0'}, path[20] = {'\0'}, keyword[20] = {'\0'}, *allData = nullptr, *isUrlCrawled = nullptr;
     int depth = 0, maxLinkPerPage = 0;
     bool wantCrawl = false;
     cout << "\n\t\t\t ==>> Search Engine Optimization <<==";
@@ -17,7 +17,12 @@ int main()
     cout << "\nEnter keyword to search = ";
     cin >> keyword;
     allData = obj->getAllData(url, path);
+    char *originalAllData = allData;
     if (allData) // url is present
+    {
+        isUrlCrawled = obj->searchKeyword(allData, url);
+    }
+    if (isUrlCrawled)
     {
         cout << "\nThis url is already crawler";
         cout << "\nDo you want to crawl again or get already crawled data(1->True,0->False) = ";
@@ -30,7 +35,7 @@ int main()
             cin >> maxLinkPerPage;
             obj->startCrawling(url, path, depth, maxLinkPerPage);
         }
-        char *keywordUrls = obj->getUrls(allData, keyword);
+        char *keywordUrls = obj->searchKeyword(originalAllData, keyword);
         if (!keywordUrls)
         {
             cout << "\nKeyword is not present";
@@ -40,7 +45,6 @@ int main()
             cout << "\nAll urls associated with this keyword = ";
             cout << keywordUrls;
         }
-        delete[] keywordUrls;
     }
     else // url is not present
     {
@@ -50,7 +54,8 @@ int main()
         cin >> maxLinkPerPage;
         obj->startCrawling(url, path, depth, maxLinkPerPage);
         allData = obj->getAllData(url, path);
-        char *keywordUrls = obj->getUrls(allData, keyword);
+        originalAllData = allData;
+        char *keywordUrls = obj->searchKeyword(allData, keyword);
         if (!keywordUrls)
         {
             cout << "\nKeyword is not present";
@@ -60,9 +65,8 @@ int main()
             cout << "\nAll urls associated with this keyword = ";
             cout << keywordUrls;
         }
-        delete[] keywordUrls;
     }
-    delete[] allData;
+    delete[] originalAllData;
     delete obj;
     cout << "\n\n";
     return 0;

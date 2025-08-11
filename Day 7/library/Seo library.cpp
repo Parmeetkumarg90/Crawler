@@ -24,45 +24,17 @@ void SEO::startCrawling(char *url, char *path, int depth, int maxUrlPerPage)
 
 char *SEO::getAllData(const char *url, const char *path)
 {
-    return charObj->readFile(path);
+    char *newPath = new char[charObj->size_tmy_strlen(path) + 30]();
+    charObj->my_strcpy(newPath, path);
+    charObj->my_strcat(newPath, "/logFile.txt");
+    char *allData = charObj->readFile(newPath);
+    charObj->clearCharacters(newPath);
+    return allData;
 }
 
-char *SEO::getUrls(char *allData, char *keyword)
+char *SEO::searchKeyword(char *allData, char *keyword)
 {
-    charObj->lowercase(keyword);
-    charObj->lowercase(allData);
-    for (int i = 0; allData[i]; i++)
-    {
-        if (allData[i] == '#')
-        {
-            bool isFound = charObj->startsWith(&allData[i + 1], keyword);
-            if (isFound)
-            {
-                while (allData[i] != '\0' && allData[i] != '>')
-                {
-                    i++;
-                }
-                int start = i + 1, end = -1;
-                while (allData[i] != '\0' && allData[i] != '#')
-                {
-                    i++;
-                }
-                end = i - 1;
-                if (end > start)
-                {
-                    char *allUrls = new char[end - start + 2]();
-                    int j = 0;
-                    while (start <= end)
-                    {
-                        allUrls[j++] = allData[start++];
-                    }
-                    allUrls[j] = '\0';
-                    return allUrls;
-                }
-            }
-        }
-    }
-    return nullptr;
+    return charObj->my_strstr(allData, keyword);
 }
 
 void SEO::deleteFiles(const char *path)

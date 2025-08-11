@@ -323,7 +323,9 @@ bool Crawler::isUrlReachAble(const char *url)
     charObj->my_strcat(checkUrl, url);
     charObj->my_strcat(checkUrl, "\" 2>/dev/null");
     // cout << "\n\n\n " << checkUrl << "\n\n\n";
-    return system(checkUrl) == 0;
+    bool isReachable = system(checkUrl) == 0;
+    charObj->clearCharacters(checkUrl);
+    return isReachable;
 }
 
 // used for creating a log file

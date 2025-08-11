@@ -91,7 +91,7 @@ char *Crawler::wgetFileDownload(const char *url, const char *path)
     charObj->my_strcat(command, " \"");
     charObj->my_strcat(command, url);
     charObj->my_strcat(command, "\"");
-    cout << "\n\n\n " << command;
+    // cout << "\n\n\n " << command;
     int result = system(command);
     if (result == 0)
     {

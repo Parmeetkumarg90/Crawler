@@ -1,4 +1,0 @@
-#2494->https://play.google.com/,https://play.google.com/?hl=en&tab=w8,https://news.google.com/?tab=in,https://play.google.com/?hl=en&tab=i8,https://www.google.com
-
-#nbsp->https://www.google.com/imghp?hl=en&tab=wi,
-

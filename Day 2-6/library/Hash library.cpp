@@ -1,4 +1,5 @@
 #include <iostream>
+#include <type_traits>
 #include "./HashMap(generic).h"
 using namespace std;
 
@@ -206,6 +207,14 @@ void HashMap<keyType, valueType>::clear() // clear the whole hashtable
         {
             deleteNode = traverse;
             traverse = traverse->getNext();
+            if constexpr (is_same<char *, valueType>::value)
+            {
+                delete[] traverse->getKey();
+            }
+            if constexpr (is_same<keyType, char *>::value)
+            {
+                delete[] traverse->getValue();
+            }
             deleteNode->setNext(nullptr);
             delete deleteNode;
         }

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <type_traits>
+#include <malloc.h>
 #include "./HashMap(generic).h"
 using namespace std;
 
@@ -207,13 +208,19 @@ void HashMap<keyType, valueType>::clear() // clear the whole hashtable
         {
             deleteNode = traverse;
             traverse = traverse->getNext();
-            if constexpr (is_same<char *, valueType>::value)
+            if constexpr (std::is_same<keyType, char *>::value)
             {
-                delete[] traverse->getKey();
+                if (deleteNode->getKey() && malloc_usable_size(deleteNode->getKey()) > 0)
+                {
+                    delete[] deleteNode->getKey();
+                }
             }
-            if constexpr (is_same<keyType, char *>::value)
+            if constexpr (std::is_same<valueType, char *>::value)
             {
-                delete[] traverse->getValue();
+                if (deleteNode->getValue() && malloc_usable_size(deleteNode->getValue()) > 0)
+                {
+                    delete[] deleteNode->getValue();
+                }
             }
             deleteNode->setNext(nullptr);
             delete deleteNode;

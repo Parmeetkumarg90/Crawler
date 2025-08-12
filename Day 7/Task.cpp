@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
     if (isUrlCrawled)
     {
         cout << "\nThis url is already crawler";
-        cout << "\nDo you want to crawl again or get already crawled data(1->True,0->False) = ";
+        cout << "\nDo you want to crawl again or get already crawled data(1->Crawl,0->Not Crawl) = ";
         cin >> wantCrawl;
         if (wantCrawl)
         {

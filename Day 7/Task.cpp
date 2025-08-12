@@ -1,26 +1,29 @@
 #include <iostream>
 #include "./library/seo.h"
+#include "../Day 2-6/library/String.h"
 
 using namespace std;
 
-int main()
+int main(int argc, char *argv[])
 {
+    if (!argv[1] || !argv[2] || !argv[3] || !argv[4])
+    {
+        cout << "\nFields are missing";
+        cout << "Example: ./objectFile https://www.google.com ./pages/temp max-depth(number) pagesPerPage(number)\n\n";
+        return 0;
+    }
     SEO *obj = new SEO();
-    char url[100] = {'\0'}, path[20] = {'\0'}, keyword[20] = {'\0'}, *allData = nullptr, *keywordUrls = nullptr;
-    int depth = 0, maxLinkPerPage = 0;
+    Character *charObj = new Character();
+    char keyword[20] = {'\0'}, *allData = nullptr, *keywordUrls = nullptr;
     bool wantCrawl = false, isUrlCrawled = false;
     cout << "\n\t\t\t ==>> Search Engine Optimization <<==";
-    cout << "\nEnter url = ";
-    cin >> url;
-    cout << "\nEnter path = ";
-    cin >> path;
     cout << "\nEnter keyword to search = ";
     cin >> keyword;
-    allData = obj->getAllData(url, path);
+    allData = obj->getAllData(argv[1], argv[2]);
     char *originalAllData = allData;
     if (allData) // url is present
     {
-        isUrlCrawled = obj->searchInFile(allData, url);
+        isUrlCrawled = obj->searchInFile(allData, argv[1]);
     }
     if (isUrlCrawled)
     {
@@ -29,11 +32,7 @@ int main()
         cin >> wantCrawl;
         if (wantCrawl)
         {
-            cout << "\nEnter depth = ";
-            cin >> depth;
-            cout << "\nEnter maxLinkPerPage = ";
-            cin >> maxLinkPerPage;
-            obj->startCrawling(url, path, depth, maxLinkPerPage);
+            obj->startCrawling(argv[1], argv[2], charObj->stringIntoLong(argv[3]), charObj->stringIntoLong(argv[4]));
         }
         keywordUrls = obj->searchKeyword(originalAllData, keyword);
         if (!keywordUrls)
@@ -48,12 +47,8 @@ int main()
     }
     else // url is not present
     {
-        cout << "\nEnter depth = ";
-        cin >> depth;
-        cout << "\nEnter maxLinkPerPage = ";
-        cin >> maxLinkPerPage;
-        obj->startCrawling(url, path, depth, maxLinkPerPage);
-        allData = obj->getAllData(url, path);
+        obj->startCrawling(argv[1], argv[2], charObj->stringIntoLong(argv[3]), charObj->stringIntoLong(argv[4]));
+        allData = obj->getAllData(argv[1], argv[2]);
         originalAllData = allData;
         keywordUrls = obj->searchKeyword(allData, keyword);
         if (!keywordUrls)
@@ -69,6 +64,7 @@ int main()
     delete[] originalAllData;
     delete[] keywordUrls;
     delete obj;
-    cout << "\n\n";
+    delete charObj;
+    cout << "\n";
     return 0;
 }

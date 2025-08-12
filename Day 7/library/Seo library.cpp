@@ -34,6 +34,22 @@ char *SEO::getAllData(const char *url, const char *path)
 
 char *SEO::searchKeyword(char *allData, char *keyword)
 {
+    char *searchResult = charObj->my_strstr(allData, keyword);
+    int size = charObj->size_tmy_strlen(searchResult) + 1;
+    if (allData[charObj->size_tmy_strlen(allData) - size] != '#')
+    {
+        return nullptr;
+    }
+    char *processedSearch = new char[size]();
+    for (int i = 0; searchResult[i] && searchResult[i] != '#'; i++)
+    {
+        processedSearch[i] = searchResult[i];
+    }
+    return processedSearch;
+}
+
+bool SEO::searchInFile(char *allData, char *keyword)
+{
     return charObj->my_strstr(allData, keyword);
 }
 

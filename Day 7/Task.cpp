@@ -6,9 +6,9 @@ using namespace std;
 int main()
 {
     SEO *obj = new SEO();
-    char url[100] = {'\0'}, path[20] = {'\0'}, keyword[20] = {'\0'}, *allData = nullptr, *isUrlCrawled = nullptr;
+    char url[100] = {'\0'}, path[20] = {'\0'}, keyword[20] = {'\0'}, *allData = nullptr, *keywordUrls = nullptr;
     int depth = 0, maxLinkPerPage = 0;
-    bool wantCrawl = false;
+    bool wantCrawl = false, isUrlCrawled = false;
     cout << "\n\t\t\t ==>> Search Engine Optimization <<==";
     cout << "\nEnter url = ";
     cin >> url;
@@ -20,7 +20,7 @@ int main()
     char *originalAllData = allData;
     if (allData) // url is present
     {
-        isUrlCrawled = obj->searchKeyword(allData, url);
+        isUrlCrawled = obj->searchInFile(allData, url);
     }
     if (isUrlCrawled)
     {
@@ -35,7 +35,7 @@ int main()
             cin >> maxLinkPerPage;
             obj->startCrawling(url, path, depth, maxLinkPerPage);
         }
-        char *keywordUrls = obj->searchKeyword(originalAllData, keyword);
+        keywordUrls = obj->searchKeyword(originalAllData, keyword);
         if (!keywordUrls)
         {
             cout << "\nKeyword is not present";
@@ -55,7 +55,7 @@ int main()
         obj->startCrawling(url, path, depth, maxLinkPerPage);
         allData = obj->getAllData(url, path);
         originalAllData = allData;
-        char *keywordUrls = obj->searchKeyword(allData, keyword);
+        keywordUrls = obj->searchKeyword(allData, keyword);
         if (!keywordUrls)
         {
             cout << "\nKeyword is not present";
@@ -67,6 +67,7 @@ int main()
         }
     }
     delete[] originalAllData;
+    delete[] keywordUrls;
     delete obj;
     cout << "\n\n";
     return 0;

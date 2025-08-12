@@ -16,6 +16,7 @@ public:
                        int depth, int maxUrlPerPage);    // used for crawling
     char *getAllData(const char *url, const char *path); // used for reading log file
     char *searchKeyword(char *allData, char *keyword);   // used for getting keyword urls
+    bool searchInFile(char *allData, char *keyword);     // used for searching keyword in file
     void deleteFiles(const char *path);                  // used for removing old data
 };
 

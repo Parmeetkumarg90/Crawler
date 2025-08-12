@@ -35,6 +35,10 @@ char *SEO::getAllData(const char *url, const char *path)
 char *SEO::searchKeyword(char *allData, char *keyword)
 {
     char *searchResult = charObj->my_strstr(allData, keyword);
+    if (!searchResult)
+    {
+        return nullptr;
+    }
     int size = charObj->size_tmy_strlen(searchResult) + 1;
     if (allData[charObj->size_tmy_strlen(allData) - size] != '#')
     {

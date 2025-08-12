@@ -129,7 +129,7 @@ char *Crawler::readFile(const char *filePath)
     char ch, *allData = new char[100000]();
     while (file.get(ch))
     {
-        if (i < 99990)
+        if (i < 99999)
         {
             allData[i] = ch;
         }
@@ -152,7 +152,6 @@ void Crawler::dfs(char *url, char *path, int maxDepthCount, int maxFoundPerPage)
     {
         return;
     }
-    allUrls->hashInsertion(url, 0);
     fileGetDfs(url, path, maxDepthCount, maxFoundPerPage);
 }
 
@@ -164,18 +163,19 @@ void Crawler::fileGetDfs(char *url, const char *path, int maxDepthCount, int max
         return;
     }
     Node<char *, int> *currNodeUrl = allUrls->getNode(url);
-    if (currNodeUrl && currNodeUrl->getValue() == 1)
+    if (currNodeUrl && currNodeUrl->getValue() == 1) // visited
     {
         return;
     }
-    else if (currNodeUrl)
+    else if (currNodeUrl && currNodeUrl->getValue() == 0) // not visited
     {
         currNodeUrl->setVal(1);
     }
-    else
+    else // not present
     {
         allUrls->hashInsertion(url, 1);
     }
+    cout << "\nCurrent Depth: " << maxDepthCount;
     char *currFilePath = wgetFileDownload(url, path);
     if (!currFilePath)
     {
@@ -206,6 +206,10 @@ void Crawler::fileGetDfs(char *url, const char *path, int maxDepthCount, int max
         return;
     }
     // cout << "\n\n\n all urls read";
+    // for (int i = 0; thisPageUrl[i]; i++)
+    // {
+    //     cout << "\n\n " << thisPageUrl[i] << "\n\n ";
+    // }
     for (int i = 0; thisPageUrl[i] && i < maxFoundPerPage; i++)
     {
         char *urlCopy = new char[charObj->size_tmy_strlen(thisPageUrl[i]) + 1]();
@@ -219,6 +223,97 @@ void Crawler::fileGetDfs(char *url, const char *path, int maxDepthCount, int max
     charObj->clearCharacters(mostFrequentWord);
     charObj->clearArrayOfString(thisPageUrl);
 }
+
+// // find all urls
+// char **Crawler::readHtmlUrls(const char *allData, const char *url, int maxFoundPerPage)
+// {
+//     char **thisPageUrls = new char *[maxFoundPerPage + 2]();
+//     int startIndex = 0, urlIndex = 0;
+//     bool isRelativeUrl = false;
+//     int mainUrlSize = charObj->size_tmy_strlen(url);
+//     for (int i = 0; allData[i]; i++)
+//     {
+//         if (i < 9)
+//         {
+//             continue;
+//         }
+//         if (urlIndex >= maxFoundPerPage)
+//         {
+//             break;
+//         }
+//         if (allData[i] == 'h' && charObj->startsWith(&allData[i], "href=")) // for http or https urls
+//         {
+//             if (allData[i + 5] == '/' || allData[i + 5] == '.')
+//             {
+//                 isRelativeUrl = true;
+//             }
+//             startIndex = i + 5;
+//         }
+//         else if (startIndex != 0 && (allData[i + 1] == '"' || allData[i + 1] == '\''))
+//         {
+//             if (i - startIndex > 0)
+//             {
+//                 int newUrlSize = isRelativeUrl ? (mainUrlSize + (i - startIndex) + 1) : ((i - startIndex) + 1);
+//                 char *newUrl = new char[newUrlSize + 5]();
+//                 char *dummyUrl = new char[(i - startIndex) + 1]();
+//                 int j = 0, temp = startIndex;
+//                 while (temp < i)
+//                 {
+//                     dummyUrl[j++] = allData[temp++];
+//                 }
+//                 dummyUrl[j] = '\0';
+//                 const char *ext = charObj->findExtension(dummyUrl);
+//                 if (ext && charObj->findWordInArrayOfChar(ext, notAllowed))
+//                 {
+//                     charObj->clearCharacters(dummyUrl);
+//                     charObj->clearCharacters(newUrl);
+//                     continue;
+//                 }
+//                 if (isRelativeUrl)
+//                 {
+//                     if (charObj->endsWith(url, ".html"))
+//                     {
+//                         if (charObj->my_strcmp(dummyUrl, "/") == 0 || charObj->my_strcmp(dummyUrl, "./") == 0)
+//                         {
+//                             charObj->clearCharacters(dummyUrl);
+//                             charObj->clearCharacters(newUrl);
+//                             continue;
+//                         }
+//                     }
+//                     else
+//                     {
+//                         if (charObj->my_strcmp(dummyUrl, "/") == 0 || charObj->my_strcmp(dummyUrl, "./") == 0)
+//                         {
+//                             charObj->clearCharacters(dummyUrl);
+//                             charObj->clearCharacters(newUrl);
+//                             continue;
+//                         }
+//                         charObj->my_strcat(newUrl, "/");
+//                         charObj->my_strcat(newUrl, url);
+//                         j += charObj->size_tmy_strlen(url);
+//                     }
+//                     isRelativeUrl = false;
+//                 }
+//                 charObj->clearCharacters(dummyUrl);
+//                 if (charObj->startsWith(newUrl, "http") && isUrlReachAble(newUrl))
+//                 {
+//                     // if ()
+//                     // {
+//                     // cout << "\n\n\n " << newUrl << "\n\n\n";
+//                     thisPageUrls[urlIndex++] = newUrl;
+//                     // }
+//                 }
+//                 else
+//                 {
+//                     charObj->clearCharacters(newUrl);
+//                 }
+//             }
+//             startIndex = 0;
+//         }
+//     }
+//     thisPageUrls[urlIndex] = nullptr;
+//     return thisPageUrls;
+// }
 
 // find all urls
 char **Crawler::readHtmlUrls(const char *allData, const char *url, int maxFoundPerPage)
@@ -239,19 +334,12 @@ char **Crawler::readHtmlUrls(const char *allData, const char *url, int maxFoundP
         }
         if (charObj->charLowerCase(allData[i - 9]) == 'h' && charObj->charLowerCase(allData[i - 8]) == 'r' &&
             charObj->charLowerCase(allData[i - 7]) == 'e' && charObj->charLowerCase(allData[i - 6]) == 'f' &&
-            allData[i - 5] == '=' && allData[i - 4] == '"'
-            // &&
-            // charObj->charLowerCase(allData[i - 3]) == 'h' && charObj->charLowerCase(allData[i - 2]) == 't' &&
-            // charObj->charLowerCase(allData[i - 1]) == 't' && charObj->charLowerCase(allData[i]) == 'p'
-            ) // for http or https urls
+            allData[i - 5] == '=' && (allData[i - 4] == '"' || allData[i - 4] == '\'')) // for http or https urls
         {
-            if (allData[i - 3] == '/' || allData[i - 3] == '.')
-            {
-                isRelativeUrl = true;
-            }
+            isRelativeUrl = allData[i - 3] == '/' || allData[i - 3] == '.';
             startIndex = i - 3;
         }
-        else if (startIndex != 0 && allData[i] == '"')
+        else if (startIndex != 0 && (allData[i] == '"' || allData[i] == '\''))
         {
             if (i - startIndex > 0)
             {
@@ -271,49 +359,39 @@ char **Crawler::readHtmlUrls(const char *allData, const char *url, int maxFoundP
                     charObj->clearCharacters(newUrl);
                     continue;
                 }
-                // if (isRelativeUrl)
-                // {
-                // if (charObj->endsWith(url, ".html"))
-                // {
-                //     if (charObj->my_strcmp(dummyUrl, "/") == 0 || charObj->my_strcmp(dummyUrl, "./") == 0)
-                //     {
-                //         charObj->clearCharacters(dummyUrl);
-                //         charObj->clearCharacters(newUrl);
-                //         continue;
-                //     }
-                // }
-                // else
-                // {
-                //     if (charObj->my_strcmp(dummyUrl, "/") == 0 || charObj->my_strcmp(dummyUrl, "./") == 0)
-                //     {
-                //         charObj->clearCharacters(dummyUrl);
-                //         charObj->clearCharacters(newUrl);
-                //         continue;
-                //     }
-                //     charObj->my_strcat(newUrl, "/");
-                //     charObj->my_strcat(newUrl, url);
-                //     j += charObj->size_tmy_strlen(url);
-                // }
-                //     isRelativeUrl = false;
-                // }
                 if (isRelativeUrl)
                 {
-                    if (url[charObj->size_tmy_strlen(url) - 1] == '/')
+                    if (charObj->endsWith(url, ".html"))
                     {
-                        charObj->my_strcat(newUrl, url);
+                        if (charObj->my_strcmp(dummyUrl, "/") == 0 || charObj->my_strcmp(dummyUrl, "./") == 0)
+                        {
+                            charObj->clearCharacters(dummyUrl);
+                            charObj->clearCharacters(newUrl);
+                            continue;
+                        }
                     }
                     else
                     {
-                        charObj->my_strcat(newUrl, url);
-                        charObj->my_strcat(newUrl, "/");
+                        if (charObj->my_strcmp(dummyUrl, "/") == 0 || charObj->my_strcmp(dummyUrl, "./") == 0)
+                        {
+                            charObj->clearCharacters(dummyUrl);
+                            charObj->clearCharacters(newUrl);
+                            continue;
+                        }
+                        if (charObj->endsWith(url, "/"))
+                        {
+                            charObj->my_strcat(newUrl, url);
+                        }
+                        else
+                        {
+                            charObj->my_strcat(newUrl, url);
+                            charObj->my_strcat(newUrl, "/");
+                        }
+                        j += charObj->size_tmy_strlen(url);
                     }
-                    charObj->my_strcat(newUrl, dummyUrl);
                     isRelativeUrl = false;
                 }
-                else
-                {
-                    charObj->my_strcat(newUrl, dummyUrl);
-                }
+                charObj->my_strcat(newUrl, dummyUrl);
                 charObj->clearCharacters(dummyUrl);
                 if (charObj->startsWith(newUrl, "http") && isUrlReachAble(newUrl))
                 {

@@ -1,0 +1,5 @@
+#https://example.com
+#https://www.iana.org/domains/example
+#https://www.iana.org/_css/2025.01/iana_website.css
+#https://www.iana.org/_img/bookmark_icon.ico
+#https://www.iana.org/domains

@@ -1,0 +1,6 @@
+#example->https://www.iana.org/_img/bookmark_icon.ico,https://www.iana.org/domains/example,https://example.com
+
+#width->https://www.iana.org/_css/2025.01/iana_website.css,
+
+#root->https://www.iana.org/domains,
+

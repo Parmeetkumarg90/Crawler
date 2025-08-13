@@ -9,7 +9,7 @@ Crawler::Crawler()
 {
     allUrls = new HashMap<char *, int>();
     charObj = new Character();
-    static const char *sw[] = {"a", "am", "an", "and", "are", "at", "because", "but", "by", "can", "could", "did", "do", "does", "for", "had", "has", "have", "how", "if", "in", "is", "may", "might", "must", "my", "of", "on", "or", "shall", "should", "the", "to", "was", "were", "what", "when", "where", "while", "who", "why", "will", "with", "would", "you", "your", nullptr};
+    static const char *sw[] = {"nbsp", "a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has", "he", "in", "is", "it", "its", "of", "on", "that", "the", "to", "was", "will", "with", "would", "you", "your", "have", "had", "this", "these", "they", "them", "their", "there", "then", "than", "or", "but", "not", "can", "could", "should", "would", "may", "might", "must", "shall", "will", "do", "does", "did", "done", "been", "being", "about", "after", "all", "also", "any", "because", "before", "both", "but", "each", "even", "first", "her", "here", "him", "his", "how", "if", "into", "just", "like", "make", "many", "me", "more", "most", "my", "new", "no", "now", "only", "other", "our", "out", "over", "said", "same", "see", "she", "so", "some", "such", "take", "time", "two", "up", "use", "very", "way", "we", "well", "were", "what", "when", "where", "which", "who", "why", "work", "page", "home", "contact", "about", "services", "products", "news", "blog", "login", "register", "search", "help", "support", "privacy", "terms", "policy", "www", "quot", "http", "https", "com", "org", "net", "edu", "gov", "io", "co", "uk", "us", "info", "site", "online", "web", "page", "html", "www", "www.", "http://", "https://", nullptr};
     static const char *na[] = {".aac", ".aax", ".ai", ".aiff", ".alac", ".ape", ".au", ".avi", ".avif", ".bmp", ".bpg", ".css", ".dss", ".eot", ".eps", ".f4v", ".flac", ".flv", ".gif", ".gsm", ".heic", ".heif", ".ico", ".java", ".jpeg", ".jpg", ".js", ".json", ".jsx", ".less", ".m4a", ".m4v", ".mkv", ".mov", ".mp3", ".mp4", ".mpc", ".mpeg", ".mpg", ".ogg", ".otf", ".pdf", ".png", ".psd", ".py", ".raw", ".sass", ".scss", ".svg", ".tif", ".tiff", ".ts", ".tsx", ".ttf", ".wav", ".webm", ".webp", ".wma", ".wmv", ".woff", ".woff2", nullptr};
     stopWordCount = sizeof(sw) / sizeof(sw[0]);
     notAllowedCount = sizeof(na) / sizeof(na[0]);
@@ -78,11 +78,6 @@ char *Crawler::wgetFileDownload(const char *url, const char *path)
         return nullptr;
     }
     // cout << "\n\n\nBefore path: " << path << unqiueName;
-    bool isDir = isDirectoryPresent(path);
-    if (!isDir)
-    {
-        makeDIrectory(path);
-    }
     // cout << "\n\n\nAfter path: " << path << unqiueName;
     charObj->my_strcat(command, "wget -q -O");
     charObj->my_strcat(command, " ");
@@ -96,7 +91,7 @@ char *Crawler::wgetFileDownload(const char *url, const char *path)
     if (result == 0)
     {
         cout << "\nFile Downloaded Success";
-        cout << "Path: " << path << unqiueName;
+        cout << "Path: " << path << unqiueName << " Url: " << url;
     }
     else
     {
@@ -126,10 +121,10 @@ char *Crawler::readFile(const char *filePath)
         return nullptr;
     }
     int i = 0;
-    char ch, *allData = new char[100000]();
+    char ch, *allData = new char[10000000]();
     while (file.get(ch))
     {
-        if (i < 99999)
+        if (i < 9999999)
         {
             allData[i] = ch;
         }
@@ -148,9 +143,14 @@ char *Crawler::readFile(const char *filePath)
 // function for user to use it
 void Crawler::dfs(char *url, char *path, int maxDepthCount, int maxFoundPerPage)
 {
-    if (!url || !path || !maxDepthCount || maxDepthCount <= 0)
+    if (!url || !path || !maxDepthCount || maxDepthCount <= -1)
     {
         return;
+    }
+    bool isDir = isDirectoryPresent(path);
+    if (!isDir)
+    {
+        makeDIrectory(path);
     }
     fileGetDfs(url, path, maxDepthCount, maxFoundPerPage);
 }
@@ -193,10 +193,10 @@ void Crawler::fileGetDfs(char *url, const char *path, int maxDepthCount, int max
     // cout << "\n\n\n file read";
     // cout << allData;
     char *mostFrequentWord = most_frequent_word(allData, stopWords, stopWordCount);
-    charObj->lowercase(mostFrequentWord);
     allData = charObj->normalizeTextByRemovingSpaces(allData);
     // cout << "\n\n\n file normalized";
-    createLogFile(url, mostFrequentWord);
+    createLogFile(url, path, mostFrequentWord);
+    uniqueUrlLogFile(url, path);
     char **thisPageUrl = readHtmlUrls(allData, url, maxFoundPerPage);
     if (!thisPageUrl)
     {
@@ -224,105 +224,15 @@ void Crawler::fileGetDfs(char *url, const char *path, int maxDepthCount, int max
     charObj->clearArrayOfString(thisPageUrl);
 }
 
-// // find all urls
-// char **Crawler::readHtmlUrls(const char *allData, const char *url, int maxFoundPerPage)
-// {
-//     char **thisPageUrls = new char *[maxFoundPerPage + 2]();
-//     int startIndex = 0, urlIndex = 0;
-//     bool isRelativeUrl = false;
-//     int mainUrlSize = charObj->size_tmy_strlen(url);
-//     for (int i = 0; allData[i]; i++)
-//     {
-//         if (i < 9)
-//         {
-//             continue;
-//         }
-//         if (urlIndex >= maxFoundPerPage)
-//         {
-//             break;
-//         }
-//         if (allData[i] == 'h' && charObj->startsWith(&allData[i], "href=")) // for http or https urls
-//         {
-//             if (allData[i + 5] == '/' || allData[i + 5] == '.')
-//             {
-//                 isRelativeUrl = true;
-//             }
-//             startIndex = i + 5;
-//         }
-//         else if (startIndex != 0 && (allData[i + 1] == '"' || allData[i + 1] == '\''))
-//         {
-//             if (i - startIndex > 0)
-//             {
-//                 int newUrlSize = isRelativeUrl ? (mainUrlSize + (i - startIndex) + 1) : ((i - startIndex) + 1);
-//                 char *newUrl = new char[newUrlSize + 5]();
-//                 char *dummyUrl = new char[(i - startIndex) + 1]();
-//                 int j = 0, temp = startIndex;
-//                 while (temp < i)
-//                 {
-//                     dummyUrl[j++] = allData[temp++];
-//                 }
-//                 dummyUrl[j] = '\0';
-//                 const char *ext = charObj->findExtension(dummyUrl);
-//                 if (ext && charObj->findWordInArrayOfChar(ext, notAllowed))
-//                 {
-//                     charObj->clearCharacters(dummyUrl);
-//                     charObj->clearCharacters(newUrl);
-//                     continue;
-//                 }
-//                 if (isRelativeUrl)
-//                 {
-//                     if (charObj->endsWith(url, ".html"))
-//                     {
-//                         if (charObj->my_strcmp(dummyUrl, "/") == 0 || charObj->my_strcmp(dummyUrl, "./") == 0)
-//                         {
-//                             charObj->clearCharacters(dummyUrl);
-//                             charObj->clearCharacters(newUrl);
-//                             continue;
-//                         }
-//                     }
-//                     else
-//                     {
-//                         if (charObj->my_strcmp(dummyUrl, "/") == 0 || charObj->my_strcmp(dummyUrl, "./") == 0)
-//                         {
-//                             charObj->clearCharacters(dummyUrl);
-//                             charObj->clearCharacters(newUrl);
-//                             continue;
-//                         }
-//                         charObj->my_strcat(newUrl, "/");
-//                         charObj->my_strcat(newUrl, url);
-//                         j += charObj->size_tmy_strlen(url);
-//                     }
-//                     isRelativeUrl = false;
-//                 }
-//                 charObj->clearCharacters(dummyUrl);
-//                 if (charObj->startsWith(newUrl, "http") && isUrlReachAble(newUrl))
-//                 {
-//                     // if ()
-//                     // {
-//                     // cout << "\n\n\n " << newUrl << "\n\n\n";
-//                     thisPageUrls[urlIndex++] = newUrl;
-//                     // }
-//                 }
-//                 else
-//                 {
-//                     charObj->clearCharacters(newUrl);
-//                 }
-//             }
-//             startIndex = 0;
-//         }
-//     }
-//     thisPageUrls[urlIndex] = nullptr;
-//     return thisPageUrls;
-// }
-
-// find all urls
+// used to get all urls from allData
 char **Crawler::readHtmlUrls(const char *allData, const char *url, int maxFoundPerPage)
 {
     char **thisPageUrls = new char *[maxFoundPerPage + 2]();
     int startIndex = 0, urlIndex = 0;
     bool isRelativeUrl = false;
     int mainUrlSize = charObj->size_tmy_strlen(url);
-    for (int i = 10; allData[i]; i++)
+
+    for (int i = 10; allData[i] && urlIndex < maxFoundPerPage; i++)
     {
         if (i < 9)
         {
@@ -332,74 +242,112 @@ char **Crawler::readHtmlUrls(const char *allData, const char *url, int maxFoundP
         {
             break;
         }
-        if (charObj->charLowerCase(allData[i - 9]) == 'h' && charObj->charLowerCase(allData[i - 8]) == 'r' &&
-            charObj->charLowerCase(allData[i - 7]) == 'e' && charObj->charLowerCase(allData[i - 6]) == 'f' &&
-            allData[i - 5] == '=' && (allData[i - 4] == '"' || allData[i - 4] == '\'')) // for http or https urls
+
+        if (charObj->charLowerCase(allData[i - 9]) == 'h' &&
+            charObj->charLowerCase(allData[i - 8]) == 'r' &&
+            charObj->charLowerCase(allData[i - 7]) == 'e' &&
+            charObj->charLowerCase(allData[i - 6]) == 'f' &&
+            allData[i - 5] == '=' && (allData[i - 4] == '"' || allData[i - 4] == '\''))
         {
-            isRelativeUrl = allData[i - 3] == '/' || allData[i - 3] == '.';
+            isRelativeUrl = (allData[i - 3] == '/' || allData[i - 3] == '.');
             startIndex = i - 3;
         }
         else if (startIndex != 0 && (allData[i] == '"' || allData[i] == '\''))
         {
-            if (i - startIndex > 0)
+            int urlLen = i - startIndex;
+            if (urlLen > 0)
             {
-                int newUrlSize = isRelativeUrl ? (mainUrlSize + (i - startIndex) + 1) : ((i - startIndex) + 1);
-                char *newUrl = new char[newUrlSize + 5]();
-                char *dummyUrl = new char[(i - startIndex) + 1]();
-                int j = 0, temp = startIndex;
-                while (temp < i)
+                int newUrlSize = mainUrlSize + urlLen + 20;
+                char *newUrl = new char[newUrlSize]();
+                char *dummyUrl = new char[urlLen + 1]();
+
+                for (int j = 0; j < urlLen; j++)
                 {
-                    dummyUrl[j++] = allData[temp++];
+                    dummyUrl[j] = allData[startIndex + j];
                 }
-                dummyUrl[j] = '\0';
+                dummyUrl[urlLen] = '\0';
+                bool isFullUrl = charObj->startsWith(dummyUrl, "http");
                 const char *ext = charObj->findExtension(dummyUrl);
-                if (ext && charObj->findWordInArrayOfChar(ext, notAllowed))
+                if (ext)
                 {
-                    charObj->clearCharacters(dummyUrl);
-                    charObj->clearCharacters(newUrl);
-                    continue;
-                }
-                if (isRelativeUrl)
-                {
-                    if (charObj->endsWith(url, ".html"))
+                    bool isNotAllowed = charObj->findWordInArrayOfChar(ext, notAllowed);
+                    if (isNotAllowed)
                     {
-                        if (charObj->my_strcmp(dummyUrl, "/") == 0 || charObj->my_strcmp(dummyUrl, "./") == 0)
-                        {
-                            charObj->clearCharacters(dummyUrl);
-                            charObj->clearCharacters(newUrl);
-                            continue;
-                        }
+                        charObj->clearCharacters(dummyUrl);
+                        charObj->clearCharacters(newUrl);
+                        startIndex = 0;
+                        continue;
                     }
-                    else
+                }
+                if (!isFullUrl) // for relative url
+                {
+                    if (dummyUrl[0] == '/') // for /
                     {
-                        if (charObj->my_strcmp(dummyUrl, "/") == 0 || charObj->my_strcmp(dummyUrl, "./") == 0)
+                        int pos = 0, slashCount = 0;
+                        while (url[pos] && slashCount < 3)
                         {
-                            charObj->clearCharacters(dummyUrl);
-                            charObj->clearCharacters(newUrl);
-                            continue;
+                            if (url[pos] == '/')
+                            {
+                                slashCount++;
+                            }
+                            newUrl[pos] = url[pos];
+                            pos++;
                         }
-                        if (charObj->endsWith(url, "/"))
+                        newUrl[pos] = '\0';
+                        if (newUrl[pos - 1] == '/' && dummyUrl[0] == '/')
                         {
-                            charObj->my_strcat(newUrl, url);
+                            charObj->my_strcat(newUrl, dummyUrl + 1);
                         }
                         else
                         {
-                            charObj->my_strcat(newUrl, url);
+                            charObj->my_strcat(newUrl, dummyUrl);
+                        }
+                    }
+                    else if (dummyUrl[0] == '.' && dummyUrl[1] == '/') // for ./
+                    {
+                        int baseLen = charObj->size_tmy_strlen(url);
+                        char *baseDir = new char[baseLen + 1]();
+                        charObj->my_strcpy(baseDir, url);
+                        if (charObj->endsWith(url, ".html") || charObj->endsWith(url, ".htm"))
+                        {
+                            for (int k = baseLen - 1; k >= 0; k--)
+                            {
+                                if (baseDir[k] == '/')
+                                {
+                                    baseDir[k + 1] = '\0';
+                                    break;
+                                }
+                            }
+                        }
+                        charObj->my_strcpy(newUrl, baseDir);
+                        charObj->my_strcat(newUrl, dummyUrl + 2);
+                        charObj->clearCharacters(baseDir);
+                    }
+                    else if (dummyUrl[0] == '#') // for bookmark
+                    {
+                        charObj->clearCharacters(dummyUrl);
+                        charObj->clearCharacters(newUrl);
+                        startIndex = 0;
+                        continue;
+                    }
+                    else
+                    {
+                        charObj->my_strcpy(newUrl, url);
+                        if (!charObj->endsWith(url, "/") && dummyUrl[0] != '/')
+                        {
                             charObj->my_strcat(newUrl, "/");
                         }
-                        j += charObj->size_tmy_strlen(url);
+                        charObj->my_strcat(newUrl, ((dummyUrl[0] == '/') ? dummyUrl + 1 : dummyUrl));
                     }
-                    isRelativeUrl = false;
                 }
-                charObj->my_strcat(newUrl, dummyUrl);
+                else
+                {
+                    charObj->my_strcpy(newUrl, dummyUrl);
+                }
                 charObj->clearCharacters(dummyUrl);
                 if (charObj->startsWith(newUrl, "http") && isUrlReachAble(newUrl))
                 {
-                    // if ()
-                    // {
-                    // cout << "\n\n\n " << newUrl << "\n\n\n";
                     thisPageUrls[urlIndex++] = newUrl;
-                    // }
                 }
                 else
                 {
@@ -422,22 +370,25 @@ bool Crawler::isUrlReachAble(const char *url)
     charObj->my_strcat(checkUrl, url);
     charObj->my_strcat(checkUrl, "\" 2>/dev/null");
     // cout << "\n\n\n " << checkUrl << "\n\n\n";
-    bool isReachable = system(checkUrl) == 0;
+    bool isReachable = (system(checkUrl) == 0);
     charObj->clearCharacters(checkUrl);
     return isReachable;
 }
 
 // used for creating a log file
-void Crawler::createLogFile(const char *url, char *mostFrequentWord)
+void Crawler::createLogFile(const char *url, const char *path, char *mostFrequentWord)
 {
     if (!url)
     {
         return;
     }
-    char *allData = readFile("./pages/logFile.txt");
+    char *filePath = new char[charObj->size_tmy_strlen(path) + 20]();
+    charObj->my_strcat(filePath, path);
+    charObj->my_strcat(filePath, "/logFile.txt");
+    char *allData = readFile(filePath);
     if (!allData)
     {
-        fstream file("./pages/logFile.txt", ios::app);
+        fstream file(filePath, ios::app);
         if (!file.is_open())
         {
             cout << "Log File Creation Error";
@@ -452,7 +403,7 @@ void Crawler::createLogFile(const char *url, char *mostFrequentWord)
         int indexIfPresent = isKeywordPresentinFile(allData, mostFrequentWord);
         if (indexIfPresent == -1)
         {
-            fstream file("./pages/logFile.txt", ios::app);
+            fstream file(filePath, ios::app);
             if (!file.is_open())
             {
                 cout << "Log File Opening Error(Keyword Not Present)";
@@ -463,7 +414,7 @@ void Crawler::createLogFile(const char *url, char *mostFrequentWord)
         }
         else
         {
-            fstream file("./pages/logFile.txt", ios::out | ios::trunc);
+            fstream file(filePath, ios::out | ios::trunc);
             if (!file.is_open())
             {
                 cout << "Log File Opening Error(Keyword Present)";
@@ -496,6 +447,7 @@ void Crawler::createLogFile(const char *url, char *mostFrequentWord)
         }
         charObj->clearCharacters(allData);
     }
+    charObj->clearCharacters(filePath);
 }
 
 // return index from where it matched the keyword otherwise -1
@@ -515,7 +467,7 @@ int Crawler::isKeywordPresentinFile(const char *allData, const char *keyword)
 }
 
 // Most frequently used word(ignoring stopwords)
-char *Crawler::most_frequent_word(char *text, const char **stopwords, int stopcount)
+char *Crawler::most_frequent_word(const char *text, const char **stopwords, int stopcount)
 {
     if (!text)
     {
@@ -542,6 +494,7 @@ char *Crawler::most_frequent_word(char *text, const char **stopwords, int stopco
             if (endI > 1)
             {
                 traverseWord[endI] = '\0';
+                charObj->lowercase(traverseWord);
                 bool isStop = charObj->findWordInArrayOfChar(traverseWord, stopwords);
                 if (!isStop)
                 {
@@ -627,4 +580,26 @@ char *Crawler::removeTags(const char *text)
     newText[currI] = '\0';
     // cout << newText;
     return newText;
+}
+
+// create unique url log file
+void Crawler::uniqueUrlLogFile(const char *url, const char *path)
+{
+    if (!url || !path)
+    {
+        return;
+    }
+    char *filePath = new char[charObj->size_tmy_strlen(path) + 20]();
+    charObj->my_strcat(filePath, path);
+    charObj->my_strcat(filePath, "/uniqueUrl.txt");
+    fstream file(filePath, ios::app);
+    if (!file.is_open())
+    {
+        cout << "Unique Url File Creation Error";
+        return;
+    }
+    file << "#" << url;
+    file << "\n";
+    file.close();
+    charObj->clearCharacters(filePath);
 }

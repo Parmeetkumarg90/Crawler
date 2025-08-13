@@ -20,9 +20,20 @@ int Character::size_tmy_strlen(const char *s) // return length before '\0'
 int Character::my_strcmp(const char *a, const char *b) // lexicographical compare
 {
     int sizeOfA = size_tmy_strlen(a), sizeOfB = size_tmy_strlen(b);
+    char ch1, ch2;
     for (int i = 0, j = 0; i < sizeOfA && j < sizeOfB; i++, j++)
     {
-        if (a[i] != b[i])
+        ch1 = a[i];
+        ch2 = b[i];
+        if (ch1 >= 'A' && ch1 <= 'Z')
+        {
+            ch1 += 32;
+        }
+        if (ch2 >= 'A' && ch2 <= 'Z')
+        {
+            ch2 += 32;
+        }
+        if (ch1 != ch2)
         {
             return a[i] - b[i];
         }
@@ -260,9 +271,13 @@ char *Character::readFile(const char *filePath)
         return nullptr;
     }
     int i = 0;
-    char ch, *allData = new char[1000]();
+    char ch, *allData = new char[10000000]();
     while (file.get(ch))
     {
+        if (i >= 9999999)
+        {
+            break;
+        }
         allData[i] = ch;
         i++;
     }

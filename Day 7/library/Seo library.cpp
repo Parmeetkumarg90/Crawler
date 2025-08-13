@@ -34,27 +34,38 @@ char *SEO::getAllData(const char *url, const char *path)
 
 char *SEO::searchKeyword(char *allData, char *keyword)
 {
+    if (!allData || !keyword)
+    {
+        return nullptr;
+    }
     char *searchResult = charObj->my_strstr(allData, keyword);
     if (!searchResult)
     {
         return nullptr;
     }
-    int size = charObj->size_tmy_strlen(searchResult) + 1;
-    if (allData[charObj->size_tmy_strlen(allData) - size] != '#')
+    int size = charObj->size_tmy_strlen(searchResult);
+    if (size <= 0)
     {
         return nullptr;
     }
-    char *processedSearch = new char[size]();
-    for (int i = 0; searchResult[i] && searchResult[i] != '#'; i++)
+    int allDataSize = charObj->size_tmy_strlen(allData);
+    if (allDataSize < size || allData[allDataSize - size] != '#')
+    {
+        return nullptr;
+    }
+    char *processedSearch = new char[size + 1]();
+    int i = 0;
+    for (i = 0; searchResult[i] && searchResult[i] != '#'; i++)
     {
         processedSearch[i] = searchResult[i];
     }
+    processedSearch[i] = '\0';
     return processedSearch;
 }
 
 bool SEO::searchInFile(char *allData, char *keyword)
 {
-    return charObj->my_strstr(allData, keyword);
+    return (charObj->my_strstr(allData, keyword) != nullptr);
 }
 
 void SEO::deleteFiles(const char *path)
